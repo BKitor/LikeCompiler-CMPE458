@@ -13,6 +13,9 @@
 %     illegal characters and integers followed by identifiers with 
 %     no separator between them.
 
+%Add new Like input character classes (e.g., lSlash) for the characters
+%slash ("/"), percent (“%"), hash ("#"), bang ("!") and or bar ("|") in scan.ssl
+%Reuse lQuote, why isn't (') here?
 Input : 
         lLetter 
         firstCharClass = lLetter 
@@ -49,9 +52,10 @@ Output :
         %   Tokens pDiv through pRepeat are keywords which will be 
         %   separated from user defined identifiers by the Screener.
         %   This Scanner treats them all as identifiers.
-        pDiv 
-        firstKeywordToken = pDiv
-        pMod
+        
+        pChoose
+        firstKeywordToken = pChoose
+        pElseif
         pOr
         pAnd
         pNot
@@ -59,18 +63,17 @@ Output :
         pElse
         pOf
         pEnd
-        pUntil
-        pDo
-        pArray
+        pFun
+        pIs
+        pLike
         pFile
-        pProgram
-        pConst
+        pPkg
+        pPublic
         pVar
-        pType
-        pProcedure
-        pBegin
+        pUsing
+        pVal
+        pWhen
         pIf
-        pCase
         pWhile
         pRepeat
         lastKeywordToken = pRepeat
