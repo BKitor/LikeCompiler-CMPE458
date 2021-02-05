@@ -23,6 +23,7 @@ Input :
         lPlus           '+'
         lMinus          '-'
         lStar           '*'
+        lSlash          '/'
         lColon          ':'
         lEquals         '='
         lDot            '.'
@@ -216,6 +217,16 @@ Scan :
                 @Comment
             | '*':
                 .pStar
+
+            % this will need to be reworked for math stuff
+            | '/':
+                [
+                    | '/':
+                        @OneLineComment
+                    | '*':
+                        @MultiLineComment
+                ]
+
             | lNewPage:
             | lEndFile:
                 .pEndFile
@@ -305,6 +316,38 @@ AlternateComment :
                 .pNewLine
             | lEndFile:
                 #eCommentEOF
+                .pEndFile
+                >
+            | *:
+                ?
+        ]};
+
+MultiLineComment:
+        % commnet form /* to */, emmiting new lines
+        {[
+            | '*':
+                [
+                    | '/':
+                        >
+                    | *:
+                ]
+            | lNewLine:
+                .pNewLine
+            | lEndFile:
+                #eCommentEOF
+                .pEndFile
+                >
+            | *:
+                ?
+        ]};
+
+OneLineComment :
+        % discard from // to end of line
+        {[
+            | lNewLine:
+                .pNewLine
+                >
+            | lEndFile:
                 .pEndFile
                 >
             | *:
