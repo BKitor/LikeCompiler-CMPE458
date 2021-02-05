@@ -246,19 +246,21 @@ Scan :
                         @OneLineComment
                     | '*':
                         @MultiLineComment
+                    | *:
+                        .pSlash
                 ]
 
             | lNewPage:
             | lEndFile:
                 .pEndFile
                 >
-            | lBar:
+            | '|':
                 .pBar
-            | lBang:
+            | '!':
                 .pBang
-            | lHash:
+            | '#':
                 .pHash
-            | lPercent:
+            | '%':
                 .pPercent
             | *:
                 ?
@@ -315,40 +317,6 @@ StringLiteral :
                 ]
                 ?
                 oBufferSave
-        ]};
-
-Comment :
-        % Discard the contents of a comment
-
-        {[
-            | '}':
-                >
-            | lNewLine:
-                .pNewLine
-            | lEndFile:         % comment must be closed before EOF
-                #eCommentEOF
-                .pEndFile
-                >
-            | *:        % comment may contain any other character
-                ?
-        ]};
-
-AlternateComment :
-        {[
-            | '*':
-                [
-                    | ')':
-                        >
-                    | *:
-                ]
-            | lNewLine:
-                .pNewLine
-            | lEndFile:
-                #eCommentEOF
-                .pEndFile
-                >
-            | *:
-                ?
         ]};
 
 MultiLineComment:

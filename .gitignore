@@ -1,3 +1,4 @@
 *.out
 *.def
 *.sst
+*.o
