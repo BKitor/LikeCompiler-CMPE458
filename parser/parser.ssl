@@ -17,8 +17,9 @@ Input :
         % Keywords must be first both here and in stdIdentifiers,
         % and they must appear in the exact same order
 
-        pDiv                    'div'
-        firstKeywordToken = pDiv
+        pChoose                 'choose'
+        firstKeywordToken = pChoose
+        pElseif
         pMod                    'mod'
         pOr                     'or'
         pAnd                    'and'
@@ -77,7 +78,21 @@ Input :
         pLeftBracket            '['
         pRightBracket           ']'
         pDotDot                 '..'
-        lastSyntaxToken = pDotDot;
+
+        pSlash                  '/'
+        pPercent                '%'
+        pHash                   '#'
+        pBar                    '|'
+        pBang                   '!'
+        pDoubleBar              '||'
+        pPlusEquals             '+='
+        pMinusEquals            '-='
+        pStarEquals             '*='
+        pSlashEquals            '/='
+        pPercentEquals          '%='
+        pDoubleEquals           '=='
+
+        lastSyntaxToken = pDoubleEquals;
 
 Output :
         sIdentifier 

@@ -23,7 +23,6 @@ Input :
         lPlus           '+'
         lMinus          '-'
         lStar           '*'
-        lSlash          '/'
         lColon          ':'
         lEquals         '='
         lDot            '.'
@@ -46,7 +45,14 @@ Input :
         lTab
         lNewPage 
         lEndFile
-        lastCharClass = lEndFile;
+
+        % new like characters
+        lSlash          '/'
+        lPercent        '%'
+        lHash           '#'
+        lBang           '!'
+        lBar            '|'
+        lastCharClass = lBar;
 
 Output :
         % Keyword tokens -
@@ -113,7 +119,22 @@ Output :
         pLeftBracket
         pRightBracket
         pDotDot
-        lastSyntaxToken = pDotDot;
+
+        % new Like parse tokens
+        pSlash
+        pPercent
+        pHash
+        pBar
+        pBang
+        pDoubleBar
+        pPlusEquals
+        pMinusEquals
+        pStarEquals
+        pSlashEquals
+        pPercentEquals
+        pDoubleEquals
+
+        lastSyntaxToken = pDoubleEquals;
 
 Error :
         eIllegalChar = 5
@@ -231,6 +252,14 @@ Scan :
             | lEndFile:
                 .pEndFile
                 >
+            | lBar:
+                .pBar
+            | lBang:
+                .pBang
+            | lHash:
+                .pHash
+            | lPercent:
+                .pPercent
             | *:
                 ?
                 #eIllegalChar
