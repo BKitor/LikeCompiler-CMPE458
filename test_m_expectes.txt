@@ -1,0 +1,13 @@
+@Scan
+ @OneLineComment
+ @MultiLineComment
+ .pLeftBrace
+ .pRightBrace
+ .pLeftParen
+ .pStar
+ @Identifier
+  .pIdentifier
+  % Output token text 'tst'
+ .pStar
+ .pRightParen
+ .pEndFile

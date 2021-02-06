@@ -133,6 +133,8 @@ Output :
         pSlashEquals
         pPercentEquals
         pDoubleEquals
+        pLeftBrace
+        pRightBrace
 
         lastSyntaxToken = pDoubleEquals;
 
@@ -255,6 +257,13 @@ Scan :
                 .pHash
             | '%':
                 .pPercent
+            
+            % these might be unnecicary, but worst case scenario we just remove them
+            | '}':
+                .pRightBrace 
+            | '{':
+                .pLeftBrace
+                
             | *:
                 ?
                 #eIllegalChar
