@@ -172,12 +172,7 @@ Scan :
             | ';':
                 .pSemicolon
             | '(':
-                [
-                    | '*':
-                        @AlternateComment
-                    | *:
-                        .pLeftParen
-                ]
+                .pLeftParen
             | ')':
                 .pRightParen
             | '[':
@@ -234,8 +229,6 @@ Scan :
                     | *:
                         .pGreater
                 ]
-            | '{':
-                @Comment
             | '*':
                 .pStar
 
