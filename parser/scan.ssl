@@ -201,13 +201,30 @@ Scan :
                     | *:
                 ]
             | '=':
-                .pEquals
+                [ 
+	                | '=':
+	                    .pDoubleEquals
+	                | *:
+	                    .pEquals
+	            ]
             | '+':
-                .pPlus
+                [
+                    | '=':
+                        .pPlusEquals
+                    | *:
+                        .pPlus
+                ]
+                
+
             | lQuote:
                 @StringLiteral
             | '-':
-                .pMinus
+                [ 
+	                | '=':
+	                    .pMinusEquals
+	                |*:
+	                    .pMinus
+	            ]
             | '.':
                 [
                     | '.':
@@ -232,7 +249,12 @@ Scan :
                         .pGreater
                 ]
             | '*':
-                .pStar
+                [ 
+	                |'=':
+	                    .pStarEquals
+	                |*:
+	                    .pStar
+	            ]
 
             % this will need to be reworked for math stuff
             | '/':
@@ -241,6 +263,8 @@ Scan :
                         @OneLineComment
                     | '*':
                         @MultiLineComment
+                    | '=':
+	                    .pSlashEquals
                     | *:
                         .pSlash
                 ]
@@ -250,20 +274,28 @@ Scan :
                 .pEndFile
                 >
             | '|':
-                .pBar
+                [
+                    | '|':
+                        .pDoubleBar
+                    | *:
+                        .pBar
+                ]
             | '!':
                 .pBang
             | '#':
                 .pHash
             | '%':
-                .pPercent
-            
+                [ 
+                    |'=':
+	                    .pPercentEquals
+	                |*:
+	                    .pPercent
+	            ]
             % these might be unnecicary, but worst case scenario we just remove them
             | '}':
                 .pRightBrace 
             | '{':
                 .pLeftBrace
-                
             | *:
                 ?
                 #eIllegalChar

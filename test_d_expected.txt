@@ -1,0 +1,8 @@
+ .pDoubleBar
+ .pPlusEquals
+ .pMinusEquals
+ .pStarEquals
+ .pSlashEquals
+ .pPercentEquals
+ .pDoubleEquals
+ .pEndFile
