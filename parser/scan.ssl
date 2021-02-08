@@ -13,6 +13,9 @@
 %     illegal characters and integers followed by identifiers with 
 %     no separator between them.
 
+%Add new Like input character classes (e.g., lSlash) for the characters
+%slash ("/"), percent (“%"), hash ("#"), bang ("!") and or bar ("|") in scan.ssl
+%Reuse lQuote, why isn't (') here?
 Input : 
         lLetter 
         firstCharClass = lLetter 
@@ -42,16 +45,24 @@ Input :
         lTab
         lNewPage 
         lEndFile
-        lastCharClass = lEndFile;
+
+        % new like characters
+        lSlash          '/'
+        lPercent        '%'
+        lHash           '#'
+        lBang           '!'
+        lBar            '|'
+        lastCharClass = lBar;
 
 Output :
         % Keyword tokens -
         %   Tokens pDiv through pRepeat are keywords which will be 
         %   separated from user defined identifiers by the Screener.
         %   This Scanner treats them all as identifiers.
-        pDiv 
-        firstKeywordToken = pDiv
-        pMod
+        
+        pChoose
+        firstKeywordToken = pChoose
+        pElseif
         pOr
         pAnd
         pNot
@@ -59,18 +70,17 @@ Output :
         pElse
         pOf
         pEnd
-        pUntil
-        pDo
-        pArray
+        pFun
+        pIs
+        pLike
         pFile
-        pProgram
-        pConst
+        pPkg
+        pPublic
         pVar
-        pType
-        pProcedure
-        pBegin
+        pUsing
+        pVal
+        pWhen
         pIf
-        pCase
         pWhile
         pRepeat
         lastKeywordToken = pRepeat
@@ -109,7 +119,24 @@ Output :
         pLeftBracket
         pRightBracket
         pDotDot
-        lastSyntaxToken = pDotDot;
+
+        % new Like parse tokens
+        pSlash
+        pPercent
+        pHash
+        pBar
+        pBang
+        pDoubleBar
+        pPlusEquals
+        pMinusEquals
+        pStarEquals
+        pSlashEquals
+        pPercentEquals
+        pDoubleEquals
+        pLeftBrace
+        pRightBrace
+
+        lastSyntaxToken = pDoubleEquals;
 
 Error :
         eIllegalChar = 5
@@ -147,12 +174,7 @@ Scan :
             | ';':
                 .pSemicolon
             | '(':
-                [
-                    | '*':
-                        @AlternateComment
-                    | *:
-                        .pLeftParen
-                ]
+                .pLeftParen
             | ')':
                 .pRightParen
             | '[':
@@ -179,13 +201,30 @@ Scan :
                     | *:
                 ]
             | '=':
-                .pEquals
+                [ 
+	                | '=':
+	                    .pDoubleEquals
+	                | *:
+	                    .pEquals
+	            ]
             | '+':
-                .pPlus
+                [
+                    | '=':
+                        .pPlusEquals
+                    | *:
+                        .pPlus
+                ]
+                
+
             | lQuote:
                 @StringLiteral
             | '-':
-                .pMinus
+                [ 
+	                | '=':
+	                    .pMinusEquals
+	                |*:
+	                    .pMinus
+	            ]
             | '.':
                 [
                     | '.':
@@ -209,14 +248,54 @@ Scan :
                     | *:
                         .pGreater
                 ]
-            | '{':
-                @Comment
             | '*':
-                .pStar
+                [ 
+	                |'=':
+	                    .pStarEquals
+	                |*:
+	                    .pStar
+	            ]
+
+            % this will need to be reworked for math stuff
+            | '/':
+                [
+                    | '/':
+                        @OneLineComment
+                    | '*':
+                        @MultiLineComment
+                    | '=':
+	                    .pSlashEquals
+                    | *:
+                        .pSlash
+                ]
+
             | lNewPage:
             | lEndFile:
                 .pEndFile
                 >
+            | '|':
+                [
+                    | '|':
+                        .pDoubleBar
+                    | *:
+                        .pBar
+                ]
+            | '!':
+                .pBang
+            | '#':
+                .pHash
+            | '%':
+                [ 
+                    |'=':
+	                    .pPercentEquals
+	                |*:
+	                    .pPercent
+	            ]
+            % these might be unnecicary, but worst case scenario we just remove them
+            | '}':
+                .pRightBrace 
+            | '{':
+                .pLeftBrace
             | *:
                 ?
                 #eIllegalChar
@@ -274,27 +353,12 @@ StringLiteral :
                 oBufferSave
         ]};
 
-Comment :
-        % Discard the contents of a comment
-
-        {[
-            | '}':
-                >
-            | lNewLine:
-                .pNewLine
-            | lEndFile:         % comment must be closed before EOF
-                #eCommentEOF
-                .pEndFile
-                >
-            | *:        % comment may contain any other character
-                ?
-        ]};
-
-AlternateComment :
+MultiLineComment:
+        % commnet form /* to */, emmiting new lines
         {[
             | '*':
                 [
-                    | ')':
+                    | '/':
                         >
                     | *:
                 ]
@@ -302,6 +366,19 @@ AlternateComment :
                 .pNewLine
             | lEndFile:
                 #eCommentEOF
+                .pEndFile
+                >
+            | *:
+                ?
+        ]};
+
+OneLineComment :
+        % discard from // to end of line
+        {[
+            | lNewLine:
+                .pNewLine
+                >
+            | lEndFile:
                 .pEndFile
                 >
             | *:

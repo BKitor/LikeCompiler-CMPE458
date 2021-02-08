@@ -5,8 +5,8 @@
 %   These must be in the exact same order as the keyword token definitions 
 %   in the Output section of scan.ssl and the Input section of parser.ssl
 
-div
-mod
+choose
+elseif
 or
 and
 not
@@ -14,18 +14,17 @@ then
 else
 of
 end
-until
-do
-array
+fun
+is
+like
 file
-program
-const
+pkg
+public
 var
-type
-procedure
-begin
+using
+val
+when
 if
-case
 while
 repeat
 
@@ -48,10 +47,10 @@ false
 % Predeclared procedures and functions
 reset
 rewrite
-write
-writeln
-read
-readln
+put
+putln
+get
+getln
 chr
 ord
 eoln

@@ -1,0 +1,21 @@
+@Scan
+ @StringLiteral
+  .pStringLiteral
+  % Output token text 'str'
+ @StringLiteral
+  .pStringLiteral
+  % Output token text ''
+ @StringLiteral
+  .pStringLiteral
+  % Output token text ''''
+ @StringLiteral
+  .pStringLiteral
+  % Output token text 'str"str'
+ #eIllegalChar
+ #eIllegalChar
+ #eIllegalChar
+ @Identifier
+  .pIdentifier
+  % Output token text 'brkn'
+ #eIllegalChar
+ .pEndFile

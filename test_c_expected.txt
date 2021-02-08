@@ -1,0 +1,8 @@
+ .pHash
+ .pBar
+ .pBang
+ .pPercent
+ .pSlash
+ .pRightBrace
+ .pLeftBrace
+ .pEndFile
