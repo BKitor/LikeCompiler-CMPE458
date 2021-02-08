@@ -4,3 +4,5 @@
 */
 {}
 (*tst*)
+/ / 
+/* This should make the compiler mad
