@@ -136,7 +136,7 @@ Output :
         pLeftBrace
         pRightBrace
 
-        lastSyntaxToken = pDoubleEquals;
+        lastSyntaxToken = pRightBrace;
 
 Error :
         eIllegalChar = 5
