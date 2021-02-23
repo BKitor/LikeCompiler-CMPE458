@@ -166,10 +166,8 @@ rules
 
 Program :
         'using'  .sProgram
-        % program name
-        pIdentifier
-        % program parameters
-        '('
+
+        % program parameters, needs to be at least 1
         {
             pIdentifier  .sIdentifier
             [
@@ -178,46 +176,58 @@ Program :
                     >
             ]
         }
-        ')'
-        .sParmEnd
-        ';'  @Block  '.';
 
+        .sParmEnd ';'
+        .sBegin  @Block .sEnd ;
+
+% this becomes the body for all declarations and statements
 Block :
-        % Strictly speaking, standard Pascal requires that declarations
-        % appear only in the order consts, types, vars, procedures.
-        % We allow arbitrary intermixing of these instead to preserve
-        % programmer sanity.
         {[
             | 'val':
                 .sConst
-                @ConstantDefinitions
-%            | 'type':
-%                .sType
-%                @TypeDefinitions
+                @NonPublicConstantDefinitions
             | 'var':
                 .sVar
-                @VariableDeclarations
+                @NonPublicVariableDeclarations
+
+            | pIdentifier:
+                @AssignmentOrCallStmt
+
+            | 'pkg':
+                @PkgStatement
+
+            | 'if':
+                @IfStmt
+            | 'while':
+                @WhileStmt
+
+
 %            | 'procedure':
 %                .sProcedure
 %                % procedure name
 %                pIdentifier  .sIdentifier
 %                @ProcedureHeading
 %                @Block  ';'
+
+%            | 'case':
+%                @CaseStmt
+
+            | 'repeat':
+                @RepeatStmt
+
             | *:
                 >
         ]};
-%        'begin'
-%        @BeginStmt;
 
-ConstantDefinitions :
+NonPublicConstantDefinitions :
         % Accept one or more named constant definitions
         pIdentifier  .sIdentifier
-        '=' @ConstantValue ';'
-        {[
-            | pIdentifier:
-                .sIdentifier
-                '=' @ConstantValue ';'
-            | *:
+        '=' @ConstantValue
+        {[  
+            | ',' :
+                pIdentifier .sIdentifier
+                '=' @ConstantValue 
+            | ';' :
                 >
         ]};
 
@@ -244,49 +254,6 @@ UnsignedIntegerConstant :
                 .sInteger
         ];
 
-TypeDefinitions :
-        % Accept one or more named type definitions.
-        pIdentifier  .sIdentifier
-        '='  @TypeBody  ';'
-        {[
-            | pIdentifier:
-                .sIdentifier
-                '='  @TypeBody  ';'
-            | *:
-                >
-        ]};
-
-TypeBody :
-        [
-%            | 'array':
-%                .sArray
-%                '['  @SimpleType  ']'
-%                'of'  @SimpleType
-            | 'file':
-                .sFile
-                'of'  @SimpleType
-            | *:
-                @SimpleType
-        ];
-
-SimpleType :
-        % A simple type is a named type (possibly predefined)
-        % or a subrange type specification
-        [
-            | pIdentifier:
-                .sIdentifier
-                [
-                    | '..':
-                        .sRange         %% this may be unnecessary
-                        @OptionallySignedIntegerConstant
-                    | *:
-                ]
-            | *:
-                @OptionallySignedIntegerConstant
-                '..'  .sRange
-                @OptionallySignedIntegerConstant
-        ];
-
 OptionallySignedIntegerConstant :
         [
             | '-':
@@ -298,17 +265,27 @@ OptionallySignedIntegerConstant :
                 @UnsignedIntegerConstant
         ];
 
-VariableDeclarations :
-        % Accept one or more variable declarations.
+NonPublicVariableDeclarations :
+        % Accept one variable declarations.
         pIdentifier  .sIdentifier
-        ':'  @TypeBody  ';'
-        {[
-            | pIdentifier:
-                .sIdentifier
-                ':'  @TypeBody  ';'
-            | *:
-                >
-        ]};
+        [
+            | '=' :
+                .sInitialValue
+                @Expression .sExpnEnd
+                ';'
+
+            | '[' :
+                .sArray @UnsignedIntegerConstant ']'
+                ':'
+                [
+                    | 'file' :
+                        .sFile
+                    | * :
+                ]
+                'like' .sLike @ConstantValue
+                ';'
+        ];
+
 
 ProcedureHeading :
         % Accept zero or more procedure formal parameter declarations.
@@ -355,6 +332,15 @@ Statement :
             | *:
                 .sNullStmt
         ];
+
+
+PkgStatement:
+    .sPackage
+    pIdentifier .sIdentifier
+    .sBegin
+        @Block
+    .sEnd
+    ;
 
 AssignmentOrCallStmt :
         [
