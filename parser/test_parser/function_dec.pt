@@ -1,0 +1,14 @@
+using output;
+
+fun testFunction is
+end;
+
+fun testFunWithParam(p1 : like 1)
+end;
+
+var v = 1;
+fun testFunWithMultipleParams(var p2 : like "s", p3 : like v)
+end;
+
+public fun testFunWithParam(p1 : like 1)
+end;

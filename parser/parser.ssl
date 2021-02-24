@@ -186,6 +186,7 @@ Block :
             | 'val':
                 .sConst
                 @NonPublicConstantDefinitions
+
             | 'var':
                 .sVar
                 @NonPublicVariableDeclarations
@@ -201,23 +202,81 @@ Block :
             | 'while':
                 @WhileStmt
 
+            | 'fun' :
+                .sProcedure
+                @NonPublicFunction
 
-%            | 'procedure':
-%                .sProcedure
-%                % procedure name
-%                pIdentifier  .sIdentifier
-%                @ProcedureHeading
-%                @Block  ';'
-
-%            | 'case':
-%                @CaseStmt
-
+            | 'public' :
+                % can have either val, var or fun
+                [
+                    | 'val' :
+                        .sConst
+                        @PublicConstantDefinition
+                    | 'var' :
+                        .sVar
+                        @PublicVariableDeclaration
+                    | 'fun' :
+                        .sProcedure
+                        @PublicFunctionDeclaration
+                ]
+                
             | 'repeat':
                 @RepeatStmt
 
             | *:
                 >
         ]};
+
+PublicVariableDeclaration :
+        % Accept one variable declarations.
+        pIdentifier  .sIdentifier
+        .sPublic
+        [
+            | '=' :
+                .sInitialValue
+                @Expression .sExpnEnd
+                ';'
+            | * :
+                @LikeClause
+                ';'
+        ];
+
+
+
+PublicConstantDefinition :
+        % Accept one or more named constant definitions
+        pIdentifier  .sIdentifier
+        .sPublic
+        '=' @ConstantValue
+        {[  
+            | ',' :
+                pIdentifier .sIdentifier
+                '=' @ConstantValue 
+            | ';' :
+                >
+        ]};
+
+    
+PublicFunctionDeclaration :
+        % procedure name
+        pIdentifier  .sIdentifier
+        .sPublic
+        
+        @ProcedureHeading
+        'is' .sBegin 
+        @Block 
+        'end' .sEnd ';'
+    ;
+
+NonPublicFunction :
+        % procedure name
+        pIdentifier  .sIdentifier
+        
+        @ProcedureHeading
+        'is' .sBegin 
+        @Block 
+        'end' .sEnd ';'
+    ;
 
 NonPublicConstantDefinitions :
         % Accept one or more named constant definitions
@@ -273,18 +332,30 @@ NonPublicVariableDeclarations :
                 .sInitialValue
                 @Expression .sExpnEnd
                 ';'
-
-            | '[' :
-                .sArray @UnsignedIntegerConstant ']'
-                ':'
-                [
-                    | 'file' :
-                        .sFile
-                    | * :
-                ]
-                'like' .sLike @ConstantValue
+            | * :
+                @LikeClause
                 ';'
         ];
+
+LikeClause :
+    % Check for optinal array
+    [
+        | '[' :
+            .sArray @UnsignedIntegerConstant ']'
+        | * :
+    ]
+    ':'
+
+    %check for optinoal file
+    [
+        | 'file' :
+            .sFile
+        | * :
+    ]
+    
+    % match the type
+    'like' .sLike @ConstantValue
+    ;
 
 
 ProcedureHeading :
@@ -300,11 +371,9 @@ ProcedureHeading :
                         | *:
                             pIdentifier  .sIdentifier
                     ]
-                    ':'
-                    % type identifier
-                    pIdentifier  .sIdentifier
+                    @LikeClause
                     [
-                        | ';':
+                        | ',':
                         | *:
                             >
                     ]
@@ -312,7 +381,6 @@ ProcedureHeading :
                 ')'
             | *:
         ]
-        ';'
         .sParmEnd;
 
 Statement :

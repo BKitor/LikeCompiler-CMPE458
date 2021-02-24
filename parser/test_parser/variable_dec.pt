@@ -1,7 +1,7 @@
 using output;
 
-var idNum = 1;
+public var idNum = 1;
 var idExpr = 2+3;
-var idarr1[2] : like id2;
+var idarr1 : like id2;
 var idarr2[idNum] : like "1";
-var idarr2[3] : file like idStr;
+public var idarr2[3] : file like idStr;
