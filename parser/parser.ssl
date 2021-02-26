@@ -199,9 +199,12 @@ Block :
 
             | 'if':
                 @IfStmt
+            
             | 'while':
                 @WhileStmt
-
+            
+            | 'choose':
+                @ChooseStmt
             | 'fun' :
                 .sProcedure
                 @NonPublicFunction
@@ -383,6 +386,7 @@ ProcedureHeading :
         ]
         .sParmEnd;
 
+%Should we just be using the 
 Statement :
         [
             | pIdentifier:
@@ -393,8 +397,8 @@ Statement :
                 @IfStmt
             | 'while':
                 @WhileStmt
-%            | 'case':
-%                @CaseStmt
+            | 'choose':
+                @ChooseStmt
             | 'repeat':
                 @RepeatStmt
             | *:
@@ -476,35 +480,47 @@ IfStmt :
         @Expression
         .sExpnEnd
         'then'  .sThen
-        @Statement
+        @Block
+        %this is missing the begin and ends
+        {[
+            | 'elseif';
+                .sElse
+                .sIfStmt
+                @Expression
+                .sExpnEnd
+                'then'  .sThen
+                @Block
+            | *:
+                >
+        ]}
         [
             | 'else':
                 .sElse
-                @Statement
+                @Block
             | *:
         ];
 
-CaseStmt :
+ChooseStmt :
         .sCaseStmt
         @Expression
         .sExpnEnd
-        'of'
+        'of' %
+        'when'
         @CaseAlternative
         {[
-            | ';':
-                % since case alternatives cannot be null, allow
-                % for the common situation of an extra semicolon
-                % at the end of the list of case alternatives.
-                [
-                    | 'end':
-                        >
-                    | *:
-                        @CaseAlternative
-                ]
             | 'end':
                 >
+                        
+            | 'when':
+                @CaseAlternative
         ]}
-        .sCaseEnd;
+        .sCaseEnd
+        [
+            | 'else':
+                .sCaseElse
+                @Block 
+            | *:
+        ];
 
 CaseAlternative :
         % A case alternative is a statement labelled by
@@ -519,7 +535,7 @@ CaseAlternative :
             ]
         }
         .sLabelEnd
-        ':'  @Statement;
+        'then'  @Block;
 
 WhileStmt :
         .sWhileStmt

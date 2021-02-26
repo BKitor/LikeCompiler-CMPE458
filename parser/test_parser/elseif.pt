@@ -1,0 +1,16 @@
+using input, output;
+fun somebodyplays (var r : like true) is
+if gamesdealerwon > gamesplayerwon then
+	    put ("House cleans up on ");
+	    putplayersname;
+	    put (" this time."); putln;
+	elseif gamesplayerwon > gamesdealerwon then
+	    if playersname == "e" then
+		put ("E.O.Thorp does it again."); putln;
+	    else
+		putplayersname;
+		put (" must have doctored the shuffle."); putln;
+	    end;
+	else
+	    put ("Even shuffle."); putln;
+	end;
