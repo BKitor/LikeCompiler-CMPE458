@@ -1,4 +1,4 @@
-# CMPE/CISK 458 Group K Assignemnt 2
+# CMPE/CISK 458 Group K Assignemnt 2 Docs
 
 ### New Tokens Tokens
 Added new input tokens to `parser.ssl`, allong with their character string ('/', '=='), including:
@@ -15,6 +15,10 @@ Since _Like_ can take any combination of statements and declarations the main bl
 Initialy it only took definitions, and then called a `Statement` rule.
 To meet the _Like_ specificaiton, we took the contents of `Statement` rule and moved them into the `Block` loop. 
 The `Statement` rule is removed, and the `Block` changes can bee seen on lines 185 to 230. 
+
+### Program
+Updated the `Program` Rule to match a _Like_ program (line 167).
+Identifies the keyword 'using', emits the sProgram token, matches 1 or more comma seperated params, and calls the `Block` rule to get the contents of the program.
 
 ### Like Clause
 A new rule called `LikeClause` is added to match like clauses, see line 344.
