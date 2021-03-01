@@ -1,5 +1,5 @@
-using output, notBenis;
+using output;
 
-pkg Benis is
-	benis
+pkg myPackage is
+	var bar = "foo";
 end;

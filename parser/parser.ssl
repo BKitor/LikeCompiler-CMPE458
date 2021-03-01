@@ -222,10 +222,12 @@ Block :
                 ]
                 
             | 'repeat':
-                | 'while':
-                    @WhileStmt
-                |*:
-                    @RepeatStmt
+                [
+                    | 'while':
+                        @WhileStmt
+                    |*:
+                        @RepeatStmt
+                ]
 
             | *:
                 >
@@ -254,7 +256,7 @@ PublicConstantDefinition :
         '=' @ConstantValue
         {[  
             | ',' :
-                pIdentifier .sIdentifier
+                pIdentifier .sIdentifier .sPublic
                 '=' @ConstantValue 
             | ';' :
                 >
@@ -387,29 +389,11 @@ ProcedureHeading :
         ]
         .sParmEnd;
 
- 
-%Statement :
-%        [
-%            | pIdentifier:
-%                @AssignmentOrCallStmt
-%            | 'begin':
-%                @BeginStmt
-%            | 'if':
-%                @IfStmt
-%            | 'while':
-%                @WhileStmt
-%            | 'choose':
-%                @ChooseStmt
-%            | 'repeat':
-%                @RepeatStmt
-%            | *:
-%                .sNullStmt
-%        ];
-
 
 PkgStatement:
     .sPackage
     pIdentifier .sIdentifier
+    'is'
     .sBegin
         @Block
     .sEnd
@@ -464,17 +448,6 @@ CallStmt :
         ]
         .sParmEnd;
 
-BeginStmt :
-        .sBegin
-        {
-            @Statement
-            [
-                | ';':
-                | 'end':
-                    .sEnd
-                    >
-            ]
-        };
 
 IfStmt :
         .sIfStmt
