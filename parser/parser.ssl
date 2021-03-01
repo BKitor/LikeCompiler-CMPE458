@@ -200,11 +200,9 @@ Block :
             | 'if':
                 @IfStmt
             
-            | 'while':
-                @WhileStmt
-            
             | 'choose':
                 @ChooseStmt
+
             | 'fun' :
                 .sProcedure
                 @NonPublicFunction
@@ -224,7 +222,10 @@ Block :
                 ]
                 
             | 'repeat':
-                @RepeatStmt
+                | 'while':
+                    @WhileStmt
+                |*:
+                    @RepeatStmt
 
             | *:
                 >
@@ -386,24 +387,24 @@ ProcedureHeading :
         ]
         .sParmEnd;
 
-%Should we just be using the 
-Statement :
-        [
-            | pIdentifier:
-                @AssignmentOrCallStmt
+ 
+%Statement :
+%        [
+%            | pIdentifier:
+%                @AssignmentOrCallStmt
 %            | 'begin':
 %                @BeginStmt
-            | 'if':
-                @IfStmt
-            | 'while':
-                @WhileStmt
-            | 'choose':
-                @ChooseStmt
-            | 'repeat':
-                @RepeatStmt
-            | *:
-                .sNullStmt
-        ];
+%            | 'if':
+%                @IfStmt
+%            | 'while':
+%                @WhileStmt
+%            | 'choose':
+%                @ChooseStmt
+%            | 'repeat':
+%                @RepeatStmt
+%            | *:
+%                .sNullStmt
+%        ];
 
 
 PkgStatement:
@@ -480,23 +481,23 @@ IfStmt :
         @Expression
         .sExpnEnd
         'then'  .sThen
-        @Block
+        .sBegin @Block .sEnd
         %this is missing the begin and ends
         {[
-            | 'elseif';
+            | 'elseif':
                 .sElse
                 .sIfStmt
                 @Expression
                 .sExpnEnd
                 'then'  .sThen
-                @Block
+                .sBegin @Block .sEnd
             | *:
                 >
         ]}
         [
             | 'else':
                 .sElse
-                @Block
+                .sBegin @Block .sEnd
             | *:
         ];
 
@@ -504,11 +505,11 @@ ChooseStmt :
         .sCaseStmt
         @Expression
         .sExpnEnd
-        'of' %
-        'when'
+        'of' 
         @CaseAlternative
         {[
             | 'end':
+                .sEnd ';'
                 >
                         
             | 'when':
@@ -518,7 +519,8 @@ ChooseStmt :
         [
             | 'else':
                 .sCaseElse
-                @Block 
+                .sBegin @Block 
+                'end' .sEnd ';'
             | *:
         ];
 
@@ -535,27 +537,27 @@ CaseAlternative :
             ]
         }
         .sLabelEnd
-        'then'  @Block;
+        'then' 
+        .sBegin @Block .sEnd;
 
 WhileStmt :
         .sWhileStmt
         @Expression
         .sExpnEnd
-%        'do'
-        @Statement;
+        .sBegin @Block 
+        'end' .sEnd ';';
 
 RepeatStmt :
         .sRepeatStmt
         {
-            @Statement
+            .sBegin @Block .sEnd
             [
-                | ';':
                 | 'while':
                     .sRepeatEnd
                     >
             ]
         }
-        @Expression
+        @Expression .sNot
         .sExpnEnd;
 
 Expression :

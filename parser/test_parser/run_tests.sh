@@ -25,7 +25,7 @@ var(){ ptc -o1 -L $LIKE_LIB constant_dec.pt; }
 val(){ ptc -o1 -L $LIKE_LIB variable_dec.pt; }
 fun(){ ptc -o1 -L $LIKE_LIB function_dec.pt; }
 chs(){ ptc -o1 -L $LIKE_LIB choose.pt; }
-eif(){ ptc -o1 -L $LIKE_LIB choose.pt; }
+eif(){ ptc -o1 -L $LIKE_LIB elseif.pt; }
 
 if [ $# -ne 0 ]; then
     if [[ "$1" == *"p"* ]];then pkg_trace; fi
@@ -33,7 +33,7 @@ if [ $# -ne 0 ]; then
     if [[ "$1" == *"l"* ]];then val_trace; fi
     if [[ "$1" == *"f"* ]];then fun_trace; fi
     if [[ "$1" == *"c"* ]];then chs_trace; fi
-    if [[ "$1" == *"eif"* ]];then chs_trace; fi
+    if [[ "$1" == *"eif"* ]];then eif_trace; fi
 
 else
     echo "-- test pkg ---"
