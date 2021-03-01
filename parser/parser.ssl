@@ -166,10 +166,8 @@ rules
 
 Program :
         'using'  .sProgram
-        % program name
-        pIdentifier
-        % program parameters
-        '('
+
+        % program parameters, needs to be at least 1
         {
             pIdentifier  .sIdentifier
             [
@@ -178,46 +176,121 @@ Program :
                     >
             ]
         }
-        ')'
-        .sParmEnd
-        ';'  @Block  '.';
 
+        .sParmEnd ';'
+        .sBegin  @Block .sEnd ;
+
+% this becomes the body for all declarations and statements
 Block :
-        % Strictly speaking, standard Pascal requires that declarations
-        % appear only in the order consts, types, vars, procedures.
-        % We allow arbitrary intermixing of these instead to preserve
-        % programmer sanity.
         {[
             | 'val':
                 .sConst
-                @ConstantDefinitions
-%            | 'type':
-%                .sType
-%                @TypeDefinitions
+                @NonPublicConstantDefinitions
+
             | 'var':
                 .sVar
-                @VariableDeclarations
-%            | 'procedure':
-%                .sProcedure
-%                % procedure name
-%                pIdentifier  .sIdentifier
-%                @ProcedureHeading
-%                @Block  ';'
+                @NonPublicVariableDeclarations
+
+            | pIdentifier:
+                @AssignmentOrCallStmt
+
+            | 'pkg':
+                @PkgStatement
+
+            | 'if':
+                @IfStmt
+            
+            | 'choose':
+                @ChooseStmt
+
+            | 'fun' :
+                .sProcedure
+                @NonPublicFunction
+
+            | 'public' :
+                % can have either val, var or fun
+                [
+                    | 'val' :
+                        .sConst
+                        @PublicConstantDefinition
+                    | 'var' :
+                        .sVar
+                        @PublicVariableDeclaration
+                    | 'fun' :
+                        .sProcedure
+                        @PublicFunctionDeclaration
+                ]
+                
+            | 'repeat':
+                | 'while':
+                    @WhileStmt
+                |*:
+                    @RepeatStmt
+
             | *:
                 >
         ]};
-%        'begin'
-%        @BeginStmt;
 
-ConstantDefinitions :
+PublicVariableDeclaration :
+        % Accept one variable declarations.
+        pIdentifier  .sIdentifier
+        .sPublic
+        [
+            | '=' :
+                .sInitialValue
+                @Expression .sExpnEnd
+                ';'
+            | * :
+                @LikeClause
+                ';'
+        ];
+
+
+
+PublicConstantDefinition :
         % Accept one or more named constant definitions
         pIdentifier  .sIdentifier
-        '=' @ConstantValue ';'
-        {[
-            | pIdentifier:
-                .sIdentifier
-                '=' @ConstantValue ';'
-            | *:
+        .sPublic
+        '=' @ConstantValue
+        {[  
+            | ',' :
+                pIdentifier .sIdentifier
+                '=' @ConstantValue 
+            | ';' :
+                >
+        ]};
+
+    
+PublicFunctionDeclaration :
+        % procedure name
+        pIdentifier  .sIdentifier
+        .sPublic
+        
+        @ProcedureHeading
+        'is' .sBegin 
+        @Block 
+        'end' .sEnd ';'
+    ;
+
+NonPublicFunction :
+        % procedure name
+        pIdentifier  .sIdentifier
+        
+        @ProcedureHeading
+        'is' .sBegin 
+        @Block 
+        'end' .sEnd ';'
+    ;
+
+NonPublicConstantDefinitions :
+        % Accept one or more named constant definitions
+        pIdentifier  .sIdentifier
+        '=' @ConstantValue
+        {[  
+            | ',' :
+                pIdentifier .sIdentifier
+                '=' @ConstantValue 
+            | ';' :
                 >
         ]};
 
@@ -244,49 +317,6 @@ UnsignedIntegerConstant :
                 .sInteger
         ];
 
-TypeDefinitions :
-        % Accept one or more named type definitions.
-        pIdentifier  .sIdentifier
-        '='  @TypeBody  ';'
-        {[
-            | pIdentifier:
-                .sIdentifier
-                '='  @TypeBody  ';'
-            | *:
-                >
-        ]};
-
-TypeBody :
-        [
-%            | 'array':
-%                .sArray
-%                '['  @SimpleType  ']'
-%                'of'  @SimpleType
-            | 'file':
-                .sFile
-                'of'  @SimpleType
-            | *:
-                @SimpleType
-        ];
-
-SimpleType :
-        % A simple type is a named type (possibly predefined)
-        % or a subrange type specification
-        [
-            | pIdentifier:
-                .sIdentifier
-                [
-                    | '..':
-                        .sRange         %% this may be unnecessary
-                        @OptionallySignedIntegerConstant
-                    | *:
-                ]
-            | *:
-                @OptionallySignedIntegerConstant
-                '..'  .sRange
-                @OptionallySignedIntegerConstant
-        ];
-
 OptionallySignedIntegerConstant :
         [
             | '-':
@@ -298,17 +328,39 @@ OptionallySignedIntegerConstant :
                 @UnsignedIntegerConstant
         ];
 
-VariableDeclarations :
-        % Accept one or more variable declarations.
+NonPublicVariableDeclarations :
+        % Accept one variable declarations.
         pIdentifier  .sIdentifier
-        ':'  @TypeBody  ';'
-        {[
-            | pIdentifier:
-                .sIdentifier
-                ':'  @TypeBody  ';'
-            | *:
-                >
-        ]};
+        [
+            | '=' :
+                .sInitialValue
+                @Expression .sExpnEnd
+                ';'
+            | * :
+                @LikeClause
+                ';'
+        ];
+
+LikeClause :
+    % Check for optinal array
+    [
+        | '[' :
+            .sArray @UnsignedIntegerConstant ']'
+        | * :
+    ]
+    ':'
+
+    %check for optinoal file
+    [
+        | 'file' :
+            .sFile
+        | * :
+    ]
+    
+    % match the type
+    'like' .sLike @ConstantValue
+    ;
+
 
 ProcedureHeading :
         % Accept zero or more procedure formal parameter declarations.
@@ -323,11 +375,9 @@ ProcedureHeading :
                         | *:
                             pIdentifier  .sIdentifier
                     ]
-                    ':'
-                    % type identifier
-                    pIdentifier  .sIdentifier
+                    @LikeClause
                     [
-                        | ';':
+                        | ',':
                         | *:
                             >
                     ]
@@ -335,26 +385,35 @@ ProcedureHeading :
                 ')'
             | *:
         ]
-        ';'
         .sParmEnd;
 
-Statement :
-        [
-            | pIdentifier:
-                @AssignmentOrCallStmt
+ 
+%Statement :
+%        [
+%            | pIdentifier:
+%                @AssignmentOrCallStmt
 %            | 'begin':
 %                @BeginStmt
-            | 'if':
-                @IfStmt
-            | 'while':
-                @WhileStmt
-%            | 'case':
-%                @CaseStmt
-            | 'repeat':
-                @RepeatStmt
-            | *:
-                .sNullStmt
-        ];
+%            | 'if':
+%                @IfStmt
+%            | 'while':
+%                @WhileStmt
+%            | 'choose':
+%                @ChooseStmt
+%            | 'repeat':
+%                @RepeatStmt
+%            | *:
+%                .sNullStmt
+%        ];
+
+
+PkgStatement:
+    .sPackage
+    pIdentifier .sIdentifier
+    .sBegin
+        @Block
+    .sEnd
+    ;
 
 AssignmentOrCallStmt :
         [
@@ -422,35 +481,48 @@ IfStmt :
         @Expression
         .sExpnEnd
         'then'  .sThen
-        @Statement
+        .sBegin @Block .sEnd
+        %this is missing the begin and ends
+        {[
+            | 'elseif':
+                .sElse
+                .sIfStmt
+                @Expression
+                .sExpnEnd
+                'then'  .sThen
+                .sBegin @Block .sEnd
+            | *:
+                >
+        ]}
         [
             | 'else':
                 .sElse
-                @Statement
+                .sBegin @Block .sEnd
             | *:
         ];
 
-CaseStmt :
+ChooseStmt :
         .sCaseStmt
         @Expression
         .sExpnEnd
-        'of'
+        'of' 
         @CaseAlternative
         {[
-            | ';':
-                % since case alternatives cannot be null, allow
-                % for the common situation of an extra semicolon
-                % at the end of the list of case alternatives.
-                [
-                    | 'end':
-                        >
-                    | *:
-                        @CaseAlternative
-                ]
             | 'end':
+                .sEnd ';'
                 >
+                        
+            | 'when':
+                @CaseAlternative
         ]}
-        .sCaseEnd;
+        .sCaseEnd
+        [
+            | 'else':
+                .sCaseElse
+                .sBegin @Block 
+                'end' .sEnd ';'
+            | *:
+        ];
 
 CaseAlternative :
         % A case alternative is a statement labelled by
@@ -465,27 +537,27 @@ CaseAlternative :
             ]
         }
         .sLabelEnd
-        ':'  @Statement;
+        'then' 
+        .sBegin @Block .sEnd;
 
 WhileStmt :
         .sWhileStmt
         @Expression
         .sExpnEnd
-%        'do'
-        @Statement;
+        .sBegin @Block 
+        'end' .sEnd ';';
 
 RepeatStmt :
         .sRepeatStmt
         {
-            @Statement
+            .sBegin @Block .sEnd
             [
-                | ';':
                 | 'while':
                     .sRepeatEnd
                     >
             ]
         }
-        @Expression
+        @Expression .sNot
         .sExpnEnd;
 
 Expression :
