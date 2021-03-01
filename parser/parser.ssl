@@ -222,10 +222,12 @@ Block :
                 ]
                 
             | 'repeat':
-                | 'while':
-                    @WhileStmt
-                |*:
-                    @RepeatStmt
+                [
+                    | 'while':
+                        @WhileStmt
+                    |*:
+                        @RepeatStmt
+                ]
 
             | *:
                 >
@@ -386,25 +388,6 @@ ProcedureHeading :
             | *:
         ]
         .sParmEnd;
-
- 
-%Statement :
-%        [
-%            | pIdentifier:
-%                @AssignmentOrCallStmt
-%            | 'begin':
-%                @BeginStmt
-%            | 'if':
-%                @IfStmt
-%            | 'while':
-%                @WhileStmt
-%            | 'choose':
-%                @ChooseStmt
-%            | 'repeat':
-%                @RepeatStmt
-%            | *:
-%                .sNullStmt
-%        ];
 
 
 PkgStatement:
