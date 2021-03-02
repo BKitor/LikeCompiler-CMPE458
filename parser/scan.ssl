@@ -103,8 +103,6 @@ Output :
         pPlus
         pMinus
         pStar
-        pColonEquals
-        pDot
         pComma
         pSemicolon
         pColon
@@ -118,7 +116,6 @@ Output :
         pRightParen
         pLeftBracket
         pRightBracket
-        pDotDot
 
         % new Like parse tokens
         pSlash
@@ -133,10 +130,8 @@ Output :
         pSlashEquals
         pPercentEquals
         pDoubleEquals
-        pLeftBrace
-        pRightBrace
 
-        lastSyntaxToken = pRightBrace;
+        lastSyntaxToken = pDoubleEquals;
 
 Error :
         eIllegalChar = 5
@@ -184,12 +179,7 @@ Scan :
             | ',':
                 .pComma
             | ':':
-                [
-                    | '=':
-                        .pColonEquals
-                    | *:
-                        .pColon
-                ]
+                .pColon
             | lDigit:
                 oBufferSave
                 @Integer
@@ -225,17 +215,8 @@ Scan :
 	                |*:
 	                    .pMinus
 	            ]
-            | '.':
-                [
-                    | '.':
-                        .pDotDot
-                    | *:
-                        .pDot
-                ]
             | '<':
                 [
-                    | '>':
-                        .pNotEqual
                     | '=':
                         .pLessEqual
                     | *:
@@ -281,7 +262,12 @@ Scan :
                         .pBar
                 ]
             | '!':
-                .pBang
+                [
+                    | '=':
+                        .pNotEqual
+                    | *:
+                        #eIllegalChar
+                ]
             | '#':
                 .pHash
             | '%':
@@ -291,11 +277,6 @@ Scan :
 	                |*:
 	                    .pPercent
 	            ]
-            % these might be unnecicary, but worst case scenario we just remove them
-            | '}':
-                .pRightBrace 
-            | '{':
-                .pLeftBrace
             | *:
                 ?
                 #eIllegalChar
