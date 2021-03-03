@@ -1,6 +1,8 @@
 using output;
 
 fun testFunction is
+    public val id5 = 1;
+    var idExpr = 2+3;
 end;
 
 fun testFunWithParam(p1 : like 1)

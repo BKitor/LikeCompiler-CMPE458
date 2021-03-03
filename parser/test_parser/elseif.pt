@@ -1,5 +1,5 @@
-using input, output;
-fun somebodyplays (var r : like true) is
+using output;
+fun somebodyplays is
 	if gamesdealerwon > gamesplayerwon then
 	    var a = 2;
 	elseif gamesplayerwon > gamesdealerwon then
@@ -11,3 +11,5 @@ fun somebodyplays (var r : like true) is
 	else
 	    var a = 2;
 	end;
+end;
+end;

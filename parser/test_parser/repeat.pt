@@ -1,0 +1,7 @@
+using output;
+    fun shuffle is
+    repeat
+        c += 1;
+    while c <= 13;
+    end;
+end; 

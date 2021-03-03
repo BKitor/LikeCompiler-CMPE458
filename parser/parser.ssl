@@ -61,8 +61,6 @@ Input :
         pPlus                   '+'
         pMinus                  '-'
         pStar                   '*'
-        pColonEquals            ':='
-        pDot                    '.'
         pComma                  ','
         pSemicolon              ';'
         pColon                  ':'
@@ -76,7 +74,6 @@ Input :
         pRightParen             ')'
         pLeftBracket            '['
         pRightBracket           ']'
-        pDotDot                 '..'
 
         pSlash                  '/'
         pPercent                '%'
@@ -90,10 +87,8 @@ Input :
         pSlashEquals            '/='
         pPercentEquals          '%='
         pDoubleEquals           '=='
-        pLeftBrace              '{'
-        pRightBrace             '}'
 
-        lastSyntaxToken = pRightBrace;
+        lastSyntaxToken = pDoubleEquals;
 
 Output :
         sIdentifier 
@@ -222,12 +217,13 @@ Block :
                 ]
                 
             | 'repeat':
-            [
-                | 'while':
-                    @WhileStmt
-                |*:
-                    @RepeatStmt
-            ]
+
+                [
+                    | 'while':
+                        @WhileStmt
+                    |*:
+                        @RepeatStmt
+                ]
 
             | *:
                 >
@@ -256,7 +252,7 @@ PublicConstantDefinition :
         '=' @ConstantValue
         {[  
             | ',' :
-                pIdentifier .sIdentifier
+                pIdentifier .sIdentifier .sPublic
                 '=' @ConstantValue 
             | ';' :
                 >
@@ -389,29 +385,11 @@ ProcedureHeading :
         ]
         .sParmEnd;
 
- 
-%Statement :
-%        [
-%            | pIdentifier:
-%                @AssignmentOrCallStmt
-%            | 'begin':
-%                @BeginStmt
-%            | 'if':
-%                @IfStmt
-%            | 'while':
-%                @WhileStmt
-%            | 'choose':
-%                @ChooseStmt
-%            | 'repeat':
-%                @RepeatStmt
-%            | *:
-%                .sNullStmt
-%        ];
-
 
 PkgStatement:
     .sPackage
     pIdentifier .sIdentifier
+    'is'
     .sBegin
         @Block
     .sEnd
@@ -419,7 +397,7 @@ PkgStatement:
 
 AssignmentOrCallStmt :
         [
-            | ':=':
+            | '=':
                 .sAssignmentStmt
                 .sIdentifier    % identifier accepted in the Statement rule
                 @Expression
@@ -430,7 +408,7 @@ AssignmentOrCallStmt :
                 .sSubscript
                 @Expression
                 .sExpnEnd
-                ']'  ':='
+                ']'  '='
                 @Expression
                 .sExpnEnd
             | *:
@@ -466,17 +444,6 @@ CallStmt :
         ]
         .sParmEnd;
 
-BeginStmt :
-        .sBegin
-        {
-            @Block
-            [
-                | ';':
-                | 'end':
-                    .sEnd
-                    >
-            ]
-        };
 
 IfStmt :
         .sIfStmt
@@ -484,7 +451,7 @@ IfStmt :
         .sExpnEnd
         'then'  .sThen
         .sBegin @Block .sEnd
-        %this is missing the begin and ends
+
         {[
             | 'elseif':
                 .sElse
