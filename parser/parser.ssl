@@ -61,8 +61,6 @@ Input :
         pPlus                   '+'
         pMinus                  '-'
         pStar                   '*'
-        pColonEquals            ':='
-        pDot                    '.'
         pComma                  ','
         pSemicolon              ';'
         pColon                  ':'
@@ -76,7 +74,6 @@ Input :
         pRightParen             ')'
         pLeftBracket            '['
         pRightBracket           ']'
-        pDotDot                 '..'
 
         pSlash                  '/'
         pPercent                '%'
@@ -90,10 +87,8 @@ Input :
         pSlashEquals            '/='
         pPercentEquals          '%='
         pDoubleEquals           '=='
-        pLeftBrace              '{'
-        pRightBrace             '}'
 
-        lastSyntaxToken = pRightBrace;
+        lastSyntaxToken = pDoubleEquals;
 
 Output :
         sIdentifier 
@@ -469,7 +464,7 @@ IfStmt :
         .sExpnEnd
         'then'  .sThen
         .sBegin @Block .sEnd
-        %this is missing the begin and ends
+
         {[
             | 'elseif':
                 .sElse
