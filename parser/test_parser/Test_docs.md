@@ -61,3 +61,12 @@ Checks if sSubString can split the string into substrings.
 Checks if sConcatenate can concatenate two strings
 Checks if sRepeatString can repeat the string a specified number of times.
 Checks if sLength can accurately check the length of a string.
+
+### Doubles '$./run_test d'
+Checks if new doubles are expanded to proper postfix
+Runs 'doubles.pt'.
+Checks if pPlusEquals can add to preexisting variable.
+Checks if pMinusEquals can subtract from a preexisting variable.
+Checks if pStarEquals can multiply a preexisting variable.
+Checks if pSlashEquals can divide a preexisting variable.
+Checks if pPercentEquals can modulo a preexisting variable.

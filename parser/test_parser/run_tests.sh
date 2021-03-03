@@ -47,7 +47,7 @@ if [ $# -ne 0 ]; then
     if [[ "$1" == *"f"* ]];then fun_trace; fi
     if [[ "$1" == *"c"* ]];then chs_trace; fi
     if [[ "$1" == *"d"* ]];then doub_trace; fi
-    if [[ "$1" == *"e"* ]];then eif_trace; fi
+    if [[ "$1" == *"e"* ]];then rep_trace; fi
     if [[ "$1" == *"s"* ]];then str_trace; fi
     if [[ "$1" == *"w"* ]];then whi_trace; fi
     if [[ "$1" == *"i"* ]];then eif_trace; fi

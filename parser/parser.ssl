@@ -487,60 +487,77 @@ CallStmt :
 
 
 IfStmt :
+%   if expression then
+%       { declarationOrStatement }
+%   { elseif expression then
+%       { declarationOrStatement } }
+%   [ else
+%       { declarationOrStatement } ]
+%   end ;
+
         .sIfStmt
         @Expression
         .sExpnEnd
         'then'  .sThen
         .sBegin @Block .sEnd
 
-        {[
-            | 'elseif':
+        {[ 
+            %nested if else statements to implement if else 
+            | 'elseif': 
                 .sElse
-                .sIfStmt
-                @Expression
-                .sExpnEnd
-                'then'  .sThen
-                .sBegin @Block .sEnd
-            | *:
-                >
-        ]}
-        [
+                .sBegin
+                @IfStmt
+                .sEnd
             | 'else':
                 .sElse
                 .sBegin @Block .sEnd
-            | *:
-        ]
-        'end'
+            | 'end':
+                >
+        ]}
         ';'
         ;
 
 ChooseStmt :
+        %   choose expression of
+        %   when constant { , constant } then
+        %       { declarationOrStatement }
+        %   { when constant { , constant } then
+        %       { declarationOrStatement } }
+        %   [ else
+        %       { declarationOrStatement } ]
+        %   end;
+
         .sCaseStmt
         @Expression
         .sExpnEnd
         'of' 
+        %when constant { , constant } then
+        'when'
         @CaseAlternative
         {[
-            | 'end':
-                .sEnd ';'
-                >
+            
                         
             | 'when':
                 @CaseAlternative
+            
+            | *:
+                >
         ]}
         .sCaseEnd
         [
             | 'else':
                 .sCaseElse
-                .sBegin @Block 
-                'end' .sEnd ';'
+                .sBegin @Block .sEnd 
             | *:
-        ];
+        ]
+        'end' ';'
+        ;
 
 CaseAlternative :
         % A case alternative is a statement labelled by
         % one or more optionally signed integer constants
-
+        
+        % constant { , constant } then
         {
             @OptionallySignedIntegerConstant
             [
@@ -554,6 +571,10 @@ CaseAlternative :
         .sBegin @Block .sEnd;
 
 WhileStmt :
+    %   repeat while expression
+    %       { declarationOrStatement }
+    %   end ;
+
         .sWhileStmt
         @Expression
         .sExpnEnd
@@ -561,6 +582,10 @@ WhileStmt :
         'end' .sEnd ';';
 
 RepeatStmt :
+    %   repeat
+    %       { declarationOrStatement }
+    %   while expression ;
+
         .sRepeatStmt
         {
             .sBegin @Block .sEnd

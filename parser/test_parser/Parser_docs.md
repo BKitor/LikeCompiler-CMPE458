@@ -209,3 +209,84 @@ Variable declared as output on line 158. Under Factor, lines 635->654, check for
 	@Factor
 	.sLength
 
+### Double Character Assignments
+New double character assignments expand to proper postifx
+
+## Plus Equals
+pPlusEquals ('+=')
+(parser.ssl -> 87, 416-422)
+pPlusEquals is declared as an input in line 87.
+Under the @AssignmentOrCallStmt function, pPlusEquals has been updated to save ourselves work in the Semantic phase 
+by simply outputting the semantic token stream for a regular assignment, so that the Semantic phase doesn’t
+have to handle short form assignments at all.
+
+| '+=':
+	.sAssignmentStmt
+	.sIdentifier    
+	.sIdentifier    
+	@Expression
+	.sAdd
+	.sExpnEnd
+
+## Minus Equals
+pMinusEquals ('-=')
+(parser.ssl -> 88, 423-429)
+pMinusEquals is declared as an input in line 88.
+Under the @AssignmentOrCallStmt function, pMinusEquals has been updated to save ourselves work in the Semantic phase 
+by simply outputting the semantic token stream for a regular assignment, so that the Semantic phase doesn’t
+have to handle short form assignments at all.
+| '-=':
+	.sAssignmentStmt
+	.sIdentifier    
+	.sIdentifier    
+	@Expression
+	.sSubtract
+	.sExpnEnd
+
+## Star Equals
+pStarEquals ('*=')
+(parser.ssl -> 89, 430-436)
+pStarEquals is declared as an input in line 89.
+Under the @AssignmentOrCallStmt function, pStarEquals has been updated to save ourselves work in the Semantic phase 
+by simply outputting the semantic token stream for a regular assignment, so that the Semantic phase doesn’t
+have to handle short form assignments at all.
+
+| '*=':
+	.sAssignmentStmt
+	.sIdentifier    
+	.sIdentifier    
+	@Expression
+	.sMultiply
+	.sExpnEnd
+
+## Slash Equals
+pSlashEquals ('/=') 
+(parser.ssl -> 90, 437-443)
+pSlashEquals is declared as an input in line 90.
+Under the @AssignmentOrCallStmt function, pSlashEquals has been updated to save ourselves work in the Semantic phase 
+by simply outputting the semantic token stream for a regular assignment, so that the Semantic phase doesn’t
+have to handle short form assignments at all.
+
+| '/=':
+	.sAssignmentStmt
+	.sIdentifier    
+	.sIdentifier    
+	@Expression
+	.sDivide
+	.sExpnEnd
+
+## Percent Equals
+pPercentEquals ('%=') 
+(parser.ssl -> 91, 444-450)
+pPercentEquals is declared as an input in line 91.
+Under the @AssignmentOrCallStmt function, pPercentEquals has been updated to save ourselves work in the Semantic phase 
+by simply outputting the semantic token stream for a regular assignment, so that the Semantic phase doesn’t
+have to handle short form assignments at all.
+
+| '%=':
+	.sAssignmentStmt
+	.sIdentifier    
+	.sIdentifier    
+	@Expression
+	.sModulus
+	.sExpnEnd
