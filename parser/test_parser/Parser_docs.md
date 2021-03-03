@@ -53,5 +53,159 @@ Each of the new Public rules produce and output similar to their NonPublic count
 The `pkg` token is matched in a block on line 197, and calls the `PkgStatement` Rule.
 The PkgStatement rule emits a sPackage token, an identifier, and the sBegin `Block` sEnd denoting the package. 
 
+### Statements
+Within the following statements(if, choose, while, repeat) All calls for @Statement in PT Pascal are replaced with @Block calls
+because Like supports any sequence of declarations and statements which are implemented in @Block 
+### elseif
+pElseIf ('elseif')
+(parser.ssl -> 22, 488->497)
+pElseIf, defined as 'elseif' is declared as an input in line 22.
+In parser.ssl the if statement is updated to include elseif functionality, line 488->497. Nested if statements were used in the place of 
+a new elseif token to allow for less work in semantic stage. 
 
+	IfStmt :
+        .sIfStmt
+        @Expression
+        .sExpnEnd
+        'then'  .sThen
+        .sBegin @Block .sEnd
+
+        {[
+            | 'elseif':
+                .sElse
+                .sIfStmt
+                @Expression
+                .sExpnEnd
+                'then'  .sThen
+                .sBegin @Block .sEnd
+            | *:
+                >
+        ]}
+        [
+            | 'else':
+                .sElse
+                .sBegin @Block .sEnd
+            | *:
+        ];
+
+### Choose
+pChoose ('choose')
+(parser.ssl -> 20-21, 203->204, 506->527)
+pChoose, defined as 'choose' is declared as an input in lines 20-21. Under the Block function it is declared
+that if 'choose' is declared then @ChooseStmt is called.
+| 'choose':
+	@ChooseStmt
+ChooseStmt is a function, lines 506-527, that is used to check for an else following the other alternatives in 
+the case statement, and output the sCaseElse output token followed by the statements of the elseclause, using the 
+modified Statement rule to enclose them in sBegin .. sEnd
+	
+	ChooseStmt :
+        .sCaseStmt
+        @Expression
+        .sExpnEnd
+        'of' 
+        @CaseAlternative
+        {[
+            | 'end':
+                .sEnd ';'
+                >
+                        
+            | 'when':
+                @CaseAlternative
+        ]}
+        .sCaseEnd
+        [
+            | 'else':
+                .sCaseElse
+                .sBegin @Block 
+                'end' .sEnd ';'
+            | *:
+        ];
+
+### repeat while
+Inputs
+pWhile ('while') line 41
+pRepeat ('repeat') line 42
+Outputs
+sWhileStmt line 130 
+sRepeatStmt line 131
+sRepeatEnd line 132
+Under the Block declaration, a check is done to see if @WhileStmt or @RepeatStmt needs to be called, lines 224-230.
+	| 'repeat':
+            [
+                | 'while':
+                    @WhileStmt
+                |*:
+                    @RepeatStmt
+            ]
+In parser.ssl the alternatives of repeat while and repeat...while are built of PT Pascal's while statement and repeat statement respectively 
+Like's repeat while statement is similar instructure to PT's while statement, therefore it was used to implement repeat while. Lines 545-550.
+	WhileStmt :
+        .sWhileStmt
+        @Expression
+        .sExpnEnd
+        .sBegin @Block 
+        'end' .sEnd ';';
+
+In parser.ssl repeat...while modifies PT pascal repeat statements by emitting a sNot token at the end of the expression. 
+This sNot is used because repeat...while expression works on the opposite logic of the repeat...until expression, hence the 
+purpose of the sNot token. Lines 552-563.
+	
+	RepeatStmt :
+        .sRepeatStmt
+        {
+            .sBegin @Block .sEnd
+            [
+                | 'while':
+                    .sRepeatEnd
+                    >
+            ]
+        }
+        @Expression .sNot
+        .sExpnEnd;
+____________________________________________________________________________________________________________________________________________
+The String Type Documentation
+
+sConcatenate (s|s)
+(parser.ssl -> 155, 599->600)
+Variable declared as output on line 155. Under SimpleExpression, lines 583->605, check for "|", go to @Term 
+and return .sConcatinate. This is done as Like replaces the old PT char data type with a varying length string type. 
+| '|':
+	@Term .sConcatinate
+
+sRepeatString (s||n)
+(parser.ssl -> 156, 601->602)
+Variable declared as output on line 156. Under SimpleExpression, lines 582->605, check for "||", go to @Term 
+and return .sRepeatString. This is done as Like replaces the old PT char data type with a varying length string type.
+| '||':
+	@Term .sRepeatString
+
+sSubstring (s/n:m)
+(parser.ssl -> 157, 612->625)
+Variable declared as output on line 157. Under Term, lines 607->633, check for "/", now check to see if type is 
+integer, if yes check to see if ":" follows the integer. If yes go to @Term and return .sSubstring.  This is done 
+as Like replaces the old PT char data type with a varying length string type.
+| '/':
+	[
+		| pInteger: 
+		.sInteger
+			[
+				| ':':
+                                @Term
+                                .sSubstring
+                            	| *:
+                                .sDivide
+                        ]
+		| *:
+                    @Factor  .sDivide
+                ] 
+
+
+sLength (#s)
+(parser.ssl -> 158, 652->654)
+Variable declared as output on line 158. Under Factor, lines 635->654, check for "pHash", go to @Factor and return
+.sLength. This is done as Like replaces the old PT char data type with a varying length string type.
+| pHash:
+	@Factor
+	.sLength
 

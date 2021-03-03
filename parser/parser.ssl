@@ -217,6 +217,7 @@ Block :
                 ]
                 
             | 'repeat':
+
                 [
                     | 'while':
                         @WhileStmt
@@ -508,7 +509,10 @@ IfStmt :
                 .sElse
                 .sBegin @Block .sEnd
             | *:
-        ];
+        ]
+        'end'
+        ';'
+        ;
 
 ChooseStmt :
         .sCaseStmt
@@ -603,6 +607,10 @@ SimpleExpression :
                 @Term  .sSubtract
             | 'or':
                 .sInfixOr  @Term  .sOr
+            | '|':
+                @Term .sConcatinate
+            | '||':
+                @Term .sRepeatString
             | *:
                 >
         ]};
@@ -613,7 +621,20 @@ Term :
             | '*':
                 @Factor  .sMultiply
             | '/':
-                @Factor  .sDivide
+                [
+                    | pInteger: 
+                    .sInteger
+                        [
+                            | ':':
+                                @Term
+                                .sSubstring
+                            | *:
+                                .sDivide
+                        ]
+                    | *:
+                    @Factor  .sDivide
+                ]  
+            %edit within the slash for sSubstring
             | '%':
                 @Factor  .sModulus
             | 'and':
@@ -639,6 +660,9 @@ Factor :
             | 'file':
                 .sFile '(' @Expression ')'
                 .sExpnEnd
+            | pHash:
+                @Factor
+                .sLength
         ];
 
 IdentifierExtension :
