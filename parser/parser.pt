@@ -130,37 +130,32 @@ program ScannerParser(output, stdIdentifiers, scanSsl, parseSsl, source, parseSt
         pPlus = 27;
         pMinus = 28;
         pStar = 29;
-        pColonEquals = 30;
-        pDot = 31;
-        pComma = 32;
-        pSemicolon = 33;
-        pColon = 34;
-        pEquals = 35;
-        pNotEqual = 36;
-        pLess = 37;
-        pLessEqual = 38;
-        pGreaterEqual = 39;
-        pGreater = 40;
-        pLeftParen = 41;
-        pRightParen = 42;
-        pLeftBracket = 43;
-        pRightBracket = 44;
-        pDotDot = 45;
-        pSlash = 46;
-        pPercent = 47;
-        pHash = 48;
-        pBar = 49;
-        pBang = 50;
-        pDoubleBar = 51;
-        pPlusEquals = 52;
-        pMinusEquals = 53;
-        pStarEquals = 54;
-        pSlashEquals = 55;
-        pPercentEquals = 56;
-        pDoubleEquals = 57;
-        pLeftBrace = 58;
-        pRightBrace = 59;
-        lastSyntaxToken = 59;
+        pComma = 30;
+        pSemicolon = 31;
+        pColon = 32;
+        pEquals = 33;
+        pNotEqual = 34;
+        pLess = 35;
+        pLessEqual = 36;
+        pGreaterEqual = 37;
+        pGreater = 38;
+        pLeftParen = 39;
+        pRightParen = 40;
+        pLeftBracket = 41;
+        pRightBracket = 42;
+        pSlash = 43;
+        pPercent = 44;
+        pHash = 45;
+        pBar = 46;
+        pBang = 47;
+        pDoubleBar = 48;
+        pPlusEquals = 49;
+        pMinusEquals = 50;
+        pStarEquals = 51;
+        pSlashEquals = 52;
+        pPercentEquals = 53;
+        pDoubleEquals = 54;
+        lastSyntaxToken = 54;
 
         { Input/Output Tokens }
 
@@ -177,17 +172,18 @@ program ScannerParser(output, stdIdentifiers, scanSsl, parseSsl, source, parseSt
 
         { S/SL Rule Table Addresses } {
         Scan = 0;
-        Identifier = 314;
-        Integer = 331;
-        StringLiteral = 346;
-        OneLineComment = 434;
-        MultiLineComment = 398;
+        Identifier = 281;
+        Integer = 298;
+        StringLiteral = 313;
+        OneLineComment = 401;
+        MultiLineComment = 365;
         }
 
         { S/SL Table Parameters }
-        sslTblSize = 457;
+        sslTblSize = 424;
         minSslTableValue = -32767;
         maxSslTableValue = 32767;
+
 
 { ===== End of contents of scan.def }
 
@@ -232,37 +228,32 @@ program ScannerParser(output, stdIdentifiers, scanSsl, parseSsl, source, parseSt
         pPlus = 27;
         pMinus = 28;
         pStar = 29;
-        pColonEquals = 30;
-        pDot = 31;
-        pComma = 32;
-        pSemicolon = 33;
-        pColon = 34;
-        pEquals = 35;
-        pNotEqual = 36;
-        pLess = 37;
-        pLessEqual = 38;
-        pGreaterEqual = 39;
-        pGreater = 40;
-        pLeftParen = 41;
-        pRightParen = 42;
-        pLeftBracket = 43;
-        pRightBracket = 44;
-        pDotDot = 45;
-        pSlash = 46;
-        pPercent = 47;
-        pHash = 48;
-        pBar = 49;
-        pBang = 50;
-        pDoubleBar = 51;
-        pPlusEquals = 52;
-        pMinusEquals = 53;
-        pStarEquals = 54;
-        pSlashEquals = 55;
-        pPercentEquals = 56;
-        pDoubleEquals = 57;
-        pLeftBrace = 58;
-        pRightBrace = 59;
-        lastSyntaxToken = 59;
+        pComma = 30;
+        pSemicolon = 31;
+        pColon = 32;
+        pEquals = 33;
+        pNotEqual = 34;
+        pLess = 35;
+        pLessEqual = 36;
+        pGreaterEqual = 37;
+        pGreater = 38;
+        pLeftParen = 39;
+        pRightParen = 40;
+        pLeftBracket = 41;
+        pRightBracket = 42;
+        pSlash = 43;
+        pPercent = 44;
+        pHash = 45;
+        pBar = 46;
+        pBang = 47;
+        pDoubleBar = 48;
+        pPlusEquals = 49;
+        pMinusEquals = 50;
+        pStarEquals = 51;
+        pSlashEquals = 52;
+        pPercentEquals = 53;
+        pDoubleEquals = 54;
+        lastSyntaxToken = 54;
 	}
 
         { Output Tokens }
@@ -336,39 +327,38 @@ program ScannerParser(output, stdIdentifiers, scanSsl, parseSsl, source, parseSt
 
         { S/SL Rule Table Addresses } {
         Program = 0;
-        Block = 34;
-        ConstantDefinitions = 58;
-        VariableDeclarations = 243;
-        ConstantValue = 88;
-        UnsignedIntegerConstant = 128;
-        TypeDefinitions = 148;
-        TypeBody = 178;
-        SimpleType = 194;
-        OptionallySignedIntegerConstant = 223;
-        ProcedureHeading = 273;
-        Statement = 321;
-        AssignmentOrCallStmt = 351;
-        IfStmt = 461;
-        WhileStmt = 548;
-        RepeatStmt = 557;
-        Expression = 587;
-        CallStmt = 391;
-        BeginStmt = 435;
-        CaseStmt = 485;
-        CaseAlternative = 528;
-        SimpleExpression = 641;
-        Term = 694;
-        Factor = 738;
-        IdentifierExtension = 796;
+        Block = 30;
+        NonPublicConstantDefinitions = 242;
+        NonPublicVariableDeclarations = 358;
+        AssignmentOrCallStmt = 470;
+        PkgStatement = 455;
+        IfStmt = 554;
+        ChooseStmt = 615;
+        NonPublicFunction = 223;
+        PublicConstantDefinition = 162;
+        PublicVariableDeclaration = 136;
+        PublicFunctionDeclaration = 202;
+        WhileStmt = 696;
+        RepeatStmt = 713;
+        Expression = 745;
+        LikeClause = 382;
+        ConstantValue = 278;
+        ProcedureHeading = 413;
+        UnsignedIntegerConstant = 318;
+        OptionallySignedIntegerConstant = 338;
+        CallStmt = 510;
+        CaseAlternative = 672;
+        SimpleExpression = 799;
+        Term = 852;
+        Factor = 896;
+        IdentifierExtension = 954;
         }
 
         { S/SL Table Parameters } {
-        sslTblSize = 826;
+        sslTblSize = 984;
         minSslTableValue = -32767;
         maxSslTableValue = 32767;
 	}
-
-
 
 
 { ===== End of contents of parser.def }

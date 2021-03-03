@@ -61,8 +61,6 @@ Input :
         pPlus                   '+'
         pMinus                  '-'
         pStar                   '*'
-        pColonEquals            ':='
-        pDot                    '.'
         pComma                  ','
         pSemicolon              ';'
         pColon                  ':'
@@ -76,7 +74,6 @@ Input :
         pRightParen             ')'
         pLeftBracket            '['
         pRightBracket           ']'
-        pDotDot                 '..'
 
         pSlash                  '/'
         pPercent                '%'
@@ -90,10 +87,8 @@ Input :
         pSlashEquals            '/='
         pPercentEquals          '%='
         pDoubleEquals           '=='
-        pLeftBrace              '{'
-        pRightBrace             '}'
 
-        lastSyntaxToken = pRightBrace;
+        lastSyntaxToken = pDoubleEquals;
 
 Output :
         sIdentifier 
@@ -222,6 +217,7 @@ Block :
                 ]
                 
             | 'repeat':
+
                 [
                     | 'while':
                         @WhileStmt
@@ -401,7 +397,7 @@ PkgStatement:
 
 AssignmentOrCallStmt :
         [
-            | ':=':
+            | '=':
                 .sAssignmentStmt
                 .sIdentifier    % identifier accepted in the Statement rule
                 @Expression
@@ -412,7 +408,7 @@ AssignmentOrCallStmt :
                 .sSubscript
                 @Expression
                 .sExpnEnd
-                ']'  ':='
+                ']'  '='
                 @Expression
                 .sExpnEnd
             | *:
@@ -455,7 +451,7 @@ IfStmt :
         .sExpnEnd
         'then'  .sThen
         .sBegin @Block .sEnd
-        %this is missing the begin and ends
+
         {[
             | 'elseif':
                 .sElse
@@ -472,7 +468,10 @@ IfStmt :
                 .sElse
                 .sBegin @Block .sEnd
             | *:
-        ];
+        ]
+        'end'
+        ';'
+        ;
 
 ChooseStmt :
         .sCaseStmt
@@ -567,6 +566,10 @@ SimpleExpression :
                 @Term  .sSubtract
             | 'or':
                 .sInfixOr  @Term  .sOr
+            | '|':
+                @Term .sConcatinate
+            | '||':
+                @Term .sRepeatString
             | *:
                 >
         ]};
@@ -577,7 +580,20 @@ Term :
             | '*':
                 @Factor  .sMultiply
             | '/':
-                @Factor  .sDivide
+                [
+                    | pInteger: 
+                    .sInteger
+                        [
+                            | ':':
+                                @Term
+                                .sSubstring
+                            | *:
+                                .sDivide
+                        ]
+                    | *:
+                    @Factor  .sDivide
+                ]  
+            %edit within the slash for sSubstring
             | '%':
                 @Factor  .sModulus
             | 'and':
@@ -603,6 +619,9 @@ Factor :
             | 'file':
                 .sFile '(' @Expression ')'
                 .sExpnEnd
+            | pHash:
+                @Factor
+                .sLength
         ];
 
 IdentifierExtension :
