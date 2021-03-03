@@ -27,15 +27,15 @@ rep_trace(){ ssltrace "$SCANIF" $LIKE_LIB/parser.def -e; }
 eif_trace(){ ssltrace "$SCANIF" $LIKE_LIB/parser.def -e; }
 
 
-pkg(){ ptc -o1 -L $LIKE_LIB packages.pt; }
-var(){ ptc -o1 -L $LIKE_LIB constant_dec.pt; }
-val(){ ptc -o1 -L $LIKE_LIB variable_dec.pt; }
-fun(){ ptc -o1 -L $LIKE_LIB function_dec.pt; }
-chs(){ ptc -o1 -L $LIKE_LIB choose.pt; }
-whi(){ ptc -o1 -L $LIKE_LIB while.pt; }
-rep(){ ptc -o1 -L $LIKE_LIB repeat.pt; }
-eif(){ ptc -o1 -L $LIKE_LIB elseif.pt; }
-str(){ ptc -o1 -L $LIKE_LIB stringType.pt; }
+pkg(){ ptc -o2 -L $LIKE_LIB packages.pt; }
+var(){ ptc -o2 -L $LIKE_LIB constant_dec.pt; }
+val(){ ptc -o2 -L $LIKE_LIB variable_dec.pt; }
+fun(){ ptc -o2 -L $LIKE_LIB function_dec.pt; }
+chs(){ ptc -o2 -L $LIKE_LIB choose.pt; }
+whi(){ ptc -o2 -L $LIKE_LIB while.pt; }
+rep(){ ptc -o2 -L $LIKE_LIB repeat.pt; }
+eif(){ ptc -o2 -L $LIKE_LIB elseif.pt; }
+str(){ ptc -o2 -L $LIKE_LIB stringType.pt; }
 
 if [ $# -ne 0 ]; then
     if [[ "$1" == *"p"* ]];then pkg_trace; fi
