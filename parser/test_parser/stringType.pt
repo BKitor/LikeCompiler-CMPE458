@@ -1,0 +1,16 @@
+using output;
+
+fun testSubString(p1 : like 1) is
+    var string = "Hi there" / 1:2
+end;
+fun testConcatenate(p1 : like 1) is
+    var concat = "Hello" | "World"
+end;
+
+fun testRepeatString(p1 : like 1) is
+    var rString = "Hello" || 2
+end;
+
+fun testLength(p1 : like 1) is
+    var tLength = # "Hello"
+end;

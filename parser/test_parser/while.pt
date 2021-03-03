@@ -1,0 +1,6 @@
+using output;
+fun writehandimage is
+    repeat while i <= ncards
+        i += 1;
+    end;
+end; //writehandimage

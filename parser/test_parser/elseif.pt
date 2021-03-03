@@ -1,0 +1,15 @@
+using output;
+fun somebodyplays is
+	if gamesdealerwon > gamesplayerwon then
+	    var a = 2;
+	elseif gamesplayerwon > gamesdealerwon then
+	    if playersname == "e" then
+		var a = 2;
+	    else
+		var a = 2;
+	    end;
+	else
+	    var a = 2;
+	end;
+end;
+end;

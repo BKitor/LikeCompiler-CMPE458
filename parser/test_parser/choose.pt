@@ -1,0 +1,12 @@
+using input, output;
+fun somebodyplays is
+        choose hand of
+            when 2,3,4 then
+                var idExpr = 2+3;
+            when 1 then
+                var b = 2;
+            else 
+                var idExpr = 2;
+        end;
+end;
+end;

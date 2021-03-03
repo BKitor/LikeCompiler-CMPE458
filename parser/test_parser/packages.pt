@@ -1,0 +1,5 @@
+using output;
+
+pkg myPackage is
+	var bar = "foo";
+end;
