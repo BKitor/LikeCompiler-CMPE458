@@ -1,0 +1,8 @@
+using output;
+
+id3 += 2;
+id3 += 2;
+id3 -= 2+3;
+id3 *= 2*id2;
+id3 /= 2;
+id3 %= 2;
