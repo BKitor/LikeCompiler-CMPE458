@@ -410,7 +410,9 @@ AssignmentOrCallStmt :
                 ']'  '='
                 @Expression
                 .sExpnEnd
-                | '+=':
+
+            % new double character assignments expand to proper postifx
+            | '+=':
                 .sAssignmentStmt
                 .sIdentifier    % identifier accepted in the Statement rule
                 .sIdentifier    
@@ -424,9 +426,34 @@ AssignmentOrCallStmt :
                 @Expression
                 .sSubtract
                 .sExpnEnd
+            | '*=':
+                .sAssignmentStmt
+                .sIdentifier    % identifier accepted in the Statement rule
+                .sIdentifier
+                @Expression
+                .sMultiply
+                .sExpnEnd
+            | '/=':
+                .sAssignmentStmt
+                .sIdentifier    % identifier accepted in the Statement rule
+                .sIdentifier
+                @Expression
+                .sDivide
+                .sExpnEnd
+            | '%=':
+                .sAssignmentStmt
+                .sIdentifier    % identifier accepted in the Statement rule
+                .sIdentifier
+                @Expression
+                .sModulus
+                .sExpnEnd
+
+            
             | *:
                 @CallStmt
-        ];
+        ]
+        ';' % match a semocolon after an assignment statement
+        ;
 
 CallStmt :
         .sCallStmt

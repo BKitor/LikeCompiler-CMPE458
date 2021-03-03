@@ -1,13 +1,8 @@
 using output;
 
-val id1 = 1;
-val id2= 1;
-val id3 = 2;
-
-if id1 == id2 then
-	id1 = 2;
-elseif id2 == id3 || id3 == id1 then
-	id3 = 3;
-else
-	id1 = 0;
-end;
+id3 += 2;
+id3 += 2;
+id3 -= 2+3;
+id3 *= 2*id2;
+id3 /= 2;
+id3 %= 2;
