@@ -98,7 +98,7 @@ that if 'choose' is declared then @ChooseStmt is called.
 ChooseStmt is a function, lines 506-527, that is used to check for an else following the other alternatives in 
 the case statement, and output the sCaseElse output token followed by the statements of the elseclause, using the 
 modified Statement rule to enclose them in sBegin .. sEnd
-	
+
 	ChooseStmt :
         .sCaseStmt
         @Expression
@@ -140,6 +140,7 @@ Under the Block declaration, a check is done to see if @WhileStmt or @RepeatStmt
             ]
 In parser.ssl the alternatives of repeat while and repeat...while are built of PT Pascal's while statement and repeat statement respectively 
 Like's repeat while statement is similar instructure to PT's while statement, therefore it was used to implement repeat while. Lines 545-550.
+
 	WhileStmt :
         .sWhileStmt
         @Expression
