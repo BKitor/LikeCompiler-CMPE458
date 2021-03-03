@@ -468,7 +468,10 @@ IfStmt :
                 .sElse
                 .sBegin @Block .sEnd
             | *:
-        ];
+        ]
+        'end'
+        ';'
+        ;
 
 ChooseStmt :
         .sCaseStmt
