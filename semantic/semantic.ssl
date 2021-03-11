@@ -799,21 +799,36 @@ ProgramParameter :
 Block :
         % The parser has flagged phase errors, but has emitted out-of-phase
         % definitions with the intent of providing better error repair.
+        sBegin
 
         {[
             | sProcedure:
                 @ProcedureDefinition
             | sConst:
                 @ConstantDefinitions
-            % | sType:
-            %     @TypeDefinitions
             | sVar:
                 @VariableDeclarations
+
+            % moved contents of Statement to be matched in block
+            | sAssignmentStmt:
+                @AssignmentStmt
+            | sCallStmt:
+                @CallStmt
+            | sIfStmt:
+                @IfStmt
+            | sWhileStmt:
+                @WhileStmt
+            | sCaseStmt:
+                @CaseStmt
+            | sRepeatStmt:
+                @RepeatStmt
+            | sNullStmt:
+
             | *:
                 >
         ]}
-        sBegin
-        @BeginStmt;
+        sEnd
+        ;
 
 ConstantDefinitions :           % Process named constant definitions
         {[
@@ -1352,24 +1367,6 @@ ProcedurePrologue :
         oTypeStkEnterParameterCount     % In procedure's type entry
         oCountPop;
 
-Statement :
-        [
-            | sAssignmentStmt:
-                @AssignmentStmt
-            | sCallStmt:
-                @CallStmt
-            | sBegin:
-                @BeginStmt
-            | sIfStmt:
-                @IfStmt
-            | sWhileStmt:
-                @WhileStmt
-            | sCaseStmt:
-                @CaseStmt
-            | sRepeatStmt:
-                @RepeatStmt
-            | sNullStmt:
-        ];
 
 AssignmentStmt :
         sIdentifier  oSymbolStkPushIdentifier
@@ -1411,14 +1408,6 @@ EmitStore:
                 .tStoreBoolean
             | *:                
         ];
-
-BeginStmt :
-        {[
-            | sEnd:
-                >
-            | *:
-                @Statement
-        ]};
 
 CallStmt :
         sIdentifier  oSymbolStkPushIdentifier   % Procedure being called
@@ -1558,7 +1547,8 @@ IfStmt :
         sThen  .tIfThen
         oFixPushForwardBranch
         oEmitNullAddress                % false branch
-        @Statement
+        % change Statement rule to Block
+        @Block
         [
             | sElse:
                 .tIfMerge
@@ -1566,7 +1556,8 @@ IfStmt :
                 oEmitNullAddress                % true branch
                 oFixSwap                % false branch back on top
                 oFixPopForwardBranch
-                @Statement
+                % change Statement to Block
+                @Block
             | *:
         ]
         .tIfEnd
@@ -1580,7 +1571,8 @@ WhileStmt :
         oFixPushForwardBranch
         oEmitNullAddress                % exit branch
         oFixSwap                % top-of-loop target back on top
-        @Statement
+        %Change Statement to block
+        @Block
         .tWhileEnd
         oFixPopTargetAddress
         oFixPopForwardBranch;
@@ -1592,7 +1584,8 @@ RepeatStmt :
             | sRepeatEnd:
                 >
             | *:
-                @Statement
+                % change Statement to Block
+                @Block
         ]}
         .tRepeatControl
         @BooleanControlExpression
@@ -1680,7 +1673,8 @@ CaseAlternative :
                 ]
                 oValuePop
         ]}
-        @Statement
+        % change statement to block
+        @Block
         .tCaseMerge
         oFixPushForwardBranch
         oEmitNullAddress                % merge branch at end of statement
