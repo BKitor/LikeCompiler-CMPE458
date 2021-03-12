@@ -736,7 +736,8 @@ Program :
                 @ProgramParameter
         ]}
         oCountPop
-        @Block
+        % change block to statement in order to match program sBegin
+        @Statement
         % Check that all file parameters have been declared
         [ oSymbolTblLookupExternal
             | yes:
@@ -799,9 +800,8 @@ ProgramParameter :
 Block :
         % The parser has flagged phase errors, but has emitted out-of-phase
         % definitions with the intent of providing better error repair.
-        sBegin
 
-        {[
+        [
             | sProcedure:
                 @ProcedureDefinition
             | sConst:
@@ -809,7 +809,7 @@ Block :
             | sVar:
                 @VariableDeclarations
 
-            % moved contents of Statement to be matched in block
+            % moved contents of Statement to be matched in block and remove sType
             | sAssignmentStmt:
                 @AssignmentStmt
             | sCallStmt:
@@ -823,11 +823,7 @@ Block :
             | sRepeatStmt:
                 @RepeatStmt
             | sNullStmt:
-
-            | *:
-                >
-        ]}
-        sEnd
+        ]
         ;
 
 ConstantDefinitions :           % Process named constant definitions
@@ -1367,6 +1363,17 @@ ProcedurePrologue :
         oTypeStkEnterParameterCount     % In procedure's type entry
         oCountPop;
 
+% Statement matches an sBegin, and calls block until it matches an sEnd
+Statement :
+        sBegin
+        oSymbolTblPushScope
+        {[
+            | sEnd:
+                oSymbolTblPopScope
+                >
+            | * :
+              @Block 
+        ]};
 
 AssignmentStmt :
         sIdentifier  oSymbolStkPushIdentifier
@@ -1547,8 +1554,7 @@ IfStmt :
         sThen  .tIfThen
         oFixPushForwardBranch
         oEmitNullAddress                % false branch
-        % change Statement rule to Block
-        @Block
+        @Statement
         [
             | sElse:
                 .tIfMerge
@@ -1556,8 +1562,7 @@ IfStmt :
                 oEmitNullAddress                % true branch
                 oFixSwap                % false branch back on top
                 oFixPopForwardBranch
-                % change Statement to Block
-                @Block
+                @Statement
             | *:
         ]
         .tIfEnd
@@ -1571,8 +1576,7 @@ WhileStmt :
         oFixPushForwardBranch
         oEmitNullAddress                % exit branch
         oFixSwap                % top-of-loop target back on top
-        %Change Statement to block
-        @Block
+        @Statement
         .tWhileEnd
         oFixPopTargetAddress
         oFixPopForwardBranch;
@@ -1584,13 +1588,13 @@ RepeatStmt :
             | sRepeatEnd:
                 >
             | *:
-                % change Statement to Block
-                @Block
+                @Statement
         ]}
         .tRepeatControl
         @BooleanControlExpression
         .tRepeatTest
         oFixPopTargetAddress;
+
 
 CaseStmt :
         .tCaseBegin
@@ -1673,8 +1677,7 @@ CaseAlternative :
                 ]
                 oValuePop
         ]}
-        % change statement to block
-        @Block
+        @Statement
         .tCaseMerge
         oFixPushForwardBranch
         oEmitNullAddress                % merge branch at end of statement

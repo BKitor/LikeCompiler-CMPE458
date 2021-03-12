@@ -592,16 +592,15 @@ RepeatStmt :
     %   while expression ;
 
         .sRepeatStmt
-        {
-            .sBegin @Block .sEnd
-            [
-                | 'while':
-                    .sRepeatEnd
-                    >
-            ]
-        }
+        
+        .sBegin @Block .sEnd 
+
+        'while' .sRepeatEnd
+        
         @Expression .sNot
-        .sExpnEnd;
+        .sExpnEnd
+        ';'
+        ;
 
 Expression :
         @SimpleExpression

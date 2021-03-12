@@ -13,7 +13,7 @@ SEMBLK="ptc -o3 -t3 -L $LIKE_LIB block.pt"
 nul_trace(){ ssltrace "$SEMNUL" $LIKE_LIB/semantic.def -e ; }
 blk_trace(){ ssltrace "$SEMBLK" $LIKE_LIB/semantic.def -e ; }
 
-blk(){ ptc -o3 -L $LIKE_LIB stringType.pt; }
+blk(){ ptc -o3 -L $LIKE_LIB block.pt; }
 
 if [ $# -ne 0 ]; then
     if [[ "$1" == *"n"* ]];then nul_trace; fi
