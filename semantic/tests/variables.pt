@@ -1,0 +1,10 @@
+using output;
+
+// var x = 1;
+
+var y : like 1;
+var z [128] : like 1;
+
+fun f(p1 : like 1, var p2 : like 2) is
+end;
+
