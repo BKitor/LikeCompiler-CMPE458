@@ -1,15 +1,40 @@
-using output;
-fun somebodyplays is
-	if gamesdealerwon > gamesplayerwon then
-	    var a = 2;
-	elseif gamesplayerwon > gamesdealerwon then
-	    if playersname == "e" then
-		var a = 2;
-	    else
-		var a = 2;
-	    end;
-	else
-	    var a = 2;
-	end;
-end;
-end;
+using input, output;
+fun playing (var r : like true) is
+    // returns true if (enough cards left for        
+    // another game, otherwise prints a shuffle      
+    // summary and returns false.                    
+
+    var numcards: like 1;
+    cardsleft (numcards);
+
+    if numcards > 10 then
+        putln;
+        put ("New game."); putln;
+        gamesplayed = gamesplayed + 1;
+        r = true;
+    else 
+        putln;
+        put ("Too few cards left for another game."); putln;
+        put ("Of ", gamesplayed:1, " games, ");
+        writeplayersname;
+        put (" won ", gamesplayerwon:1, ", dealer won ", gamesdealerwon:1, "."); putln;
+
+        if gamesdealerwon > gamesplayerwon then
+            put ("House cleans up on ");
+            writeplayersname;
+            put (" this time."); putln;
+        elseif gamesplayerwon > gamesdealerwon then
+            if playersname == "e" then
+                put ("E.O.Thorp does it again."); putln;
+            else 
+                writeplayersname;
+                put (" must have doctored the shuffle."); putln;
+            end;
+        else 
+            put ("Even shuffle."); putln;
+        end;
+
+        r = false;
+    end;
+end; //playing
+
