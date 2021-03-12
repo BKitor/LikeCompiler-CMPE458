@@ -1039,12 +1039,27 @@ VariableDeclarations :
                         % The new definition will obscure the old one
                 ]
 
-                % Accepts a type specification and pushes its type to the Type Stack.
-                % Creates type table entries for the type and any new subtypes as necessary.
-                @TypeBody
-                @EnterVariableAttributes
-                oTypeStkPop
-                oSymbolStkPop
+                [
+                    | sInitialValue:
+                        % add properties to type/symbol stacks
+                        @Expression     % Get value and type of expression
+                        @EnterVariableAttributes
+                        % Reverse Assignment of Value to var tLiteralAddress emitStore 
+                        .tLiteralInteger
+                        .tLiteralAddress
+                        @EmitStore
+                        oTypeStkPop     % pop expression from stack
+                        oSymbolStkPop   % pop Expression from stack
+                        
+
+                    | *:
+                        % Accepts a type specification and pushes its type to the Type Stack.
+                        % Creates type table entries for the type and any new subtypes as necessary.
+                        @TypeBody       % find sLike type
+                        @EnterVariableAttributes    
+                        oTypeStkPop     % pop sLike Type
+                ]
+                oSymbolStkPop   % pop var identifier
         ];
 
 EnterVariableAttributes :
