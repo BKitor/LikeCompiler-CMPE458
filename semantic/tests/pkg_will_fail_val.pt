@@ -1,0 +1,7 @@
+using output;
+var x : like 1;
+pkg p is
+    val y = 1;
+end;
+
+x += y;

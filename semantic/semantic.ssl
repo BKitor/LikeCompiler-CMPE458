@@ -308,14 +308,19 @@ mechanism SymbolTable :
         % Restore procedure parameter entries to the symbol table 
         % after popping the scope.
 
-    oSymbolTblLookupExternal >> Boolean;
+    oSymbolTblLookupExternal >> Boolean
         % Return true if any external names (program parameters)
         % have not yet been declared.
+
+    oSymbolTblMergePublicScope;
+        % megere a package scope with preveous scope, unlinks symbols not 
+        % marked as public
 
 
 % Symbol Stack types and mechanism
 
 type SymbolKind :
+        syPackage
         syConstant
         syType
         syVariable
@@ -414,8 +419,11 @@ mechanism SymbolStack :
         % If the top entry is a standard routine symbol, return a
         % value indicating which routine it is, otherwise return null.
 
-    oSymbolStkPop;
+    oSymbolStkPop
         % Pop the symbol stack
+    
+    oSymbolStkSetPublicFlag;
+        % set the public flag field to true 
 
 mechanism TypeTable :
     % A type table entry consists of 4 fields:  a type kind (e.g. integer,
@@ -800,7 +808,6 @@ ProgramParameter :
 Block :
         % The parser has flagged phase errors, but has emitted out-of-phase
         % definitions with the intent of providing better error repair.
-
         [
             | sProcedure:
                 @ProcedureDefinition
@@ -823,7 +830,43 @@ Block :
             | sRepeatStmt:
                 @RepeatStmt
             | sNullStmt:
+
+            | sPackage:
+                @PackageDefinition % New PackageDefinition rule for packages
         ]
+        ;
+
+PackageDefinition :
+        % Add sysmbol to table
+        sIdentifier oSymbolStkPushLocalIdentifier
+        [ oSymbolStkChooseKind % touch of error chekcing
+            | syUndefined:
+            | syExternal:
+                % Program parameters must be declared as file variables
+                #eExternalDeclare
+            | *:
+                #eMultiplyDefined
+                % New definition obscures old one.
+        ]
+        oSymbolStkSetKind(syPackage)
+        oTypeStkPush(tpNull)
+        oTypeTblEnter
+        oSymbolStkEnterTypeReference
+        oSymbolTblEnter
+
+        % Statement calls oSymbolTblPopScope, so we reimpliment it here
+        sBegin
+        oSymbolTblPushScope
+        {[
+            | sEnd:
+                >
+            | *:
+                @Block
+        ]}
+
+        oTypeStkPop
+        oSymbolStkPop
+        oSymbolTblMergePublicScope
         ;
 
 ConstantDefinitions :           % Process named constant definitions
@@ -839,6 +882,12 @@ ConstantDefinitions :           % Process named constant definitions
                         #eMultiplyDefined
                         % The new definition will now obscure the old one
                 ]
+                [
+                    | sPublic :
+                        oSymbolStkSetPublicFlag
+                    | *:
+                ]
+
                 oSymbolStkSetKind(syConstant)
                 @ConstantValue
                 oSymbolStkEnterTypeReference
@@ -1027,40 +1076,45 @@ SubrangeUpperBound :
 
 VariableDeclarations :
         % remove {} to only accept 1 identifier
+        
+        sIdentifier
+        oSymbolStkPushLocalIdentifier
+
+        % Check not previously defined
+        [ oSymbolStkChooseKind
+            | syUndefined, syExternal:
+            | *:
+                #eMultiplyDefined
+                % The new definition will obscure the old one
+        ]
         [
-            | sIdentifier:
-                oSymbolStkPushLocalIdentifier
+            | sPublic: % chekc for public flag
+                oSymbolStkSetPublicFlag
+            | *:
+        ] 
 
-                % Check not previously defined
-                [ oSymbolStkChooseKind
-                    | syUndefined, syExternal:
-                    | *:
-                        #eMultiplyDefined
-                        % The new definition will obscure the old one
-                ]
+        [
+            | sInitialValue:    % check if initial value, otherwise match like clause
+                % add properties to type/symbol stacks
+                @Expression     % Get value and type of expression
+                @EnterVariableAttributes
+                % Reverse Assignment of Value to var tLiteralAddress emitStore 
+                .tLiteralInteger
+                .tLiteralAddress
+                @EmitStore
+                oTypeStkPop     % pop expression from stack
+                oSymbolStkPop   % pop Expression from stack
+                
 
-                [
-                    | sInitialValue:
-                        % add properties to type/symbol stacks
-                        @Expression     % Get value and type of expression
-                        @EnterVariableAttributes
-                        % Reverse Assignment of Value to var tLiteralAddress emitStore 
-                        .tLiteralInteger
-                        .tLiteralAddress
-                        @EmitStore
-                        oTypeStkPop     % pop expression from stack
-                        oSymbolStkPop   % pop Expression from stack
-                        
-
-                    | *:
-                        % Accepts a type specification and pushes its type to the Type Stack.
-                        % Creates type table entries for the type and any new subtypes as necessary.
-                        @TypeBody       % find sLike type
-                        @EnterVariableAttributes    
-                        oTypeStkPop     % pop sLike Type
-                ]
-                oSymbolStkPop   % pop var identifier
-        ];
+            | *:
+                % Accepts a type specification and pushes its type to the Type Stack.
+                % Creates type table entries for the type and any new subtypes as necessary.
+                @TypeBody       % find sLike type
+                @EnterVariableAttributes    
+                oTypeStkPop     % pop sLike Type
+        ]
+        oSymbolStkPop   % pop var identifier
+        ;
 
 EnterVariableAttributes :
         % Enter the type on top of the Type Stack as the type of 
@@ -1167,6 +1221,14 @@ ProcedureDefinition :
                 #eMultiplyDefined
                 % New definition obscures old one.
         ]
+
+        [
+            | sPublic : % check for public flag
+                oSymbolStkSetPublicFlag
+            | *:
+        ]
+
+
         % Procedure bodies only execute when the routine is called
         % so we need to branch around the procedure's code
         .tSkipProc              % branch around procedure definition
