@@ -1,0 +1,30 @@
+using output;
+
+/*
+ Make these changes, then test with an input program that uses
+ some integer constants, if statements and integer output statements
+ to make sure things are still working before making any other changes. Do not try variables yet.
+*/
+
+repeat 
+    val tmp = 3;
+while 2 > 4;
+
+val x = 1, y = 2, z = 3;
+val n = x; 
+
+if x>y then
+    val a = 1;
+else
+    val b = 1;
+end;
+
+repeat while x>y
+    val k = 1;
+end;
+
+
+if 1>2 then
+elseif 2<2 then
+else
+end;

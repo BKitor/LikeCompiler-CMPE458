@@ -494,13 +494,12 @@ IfStmt :
 %   [ else
 %       { declarationOrStatement } ]
 %   end ;
-
         .sIfStmt
         @Expression
         .sExpnEnd
         'then'  .sThen
         .sBegin @Block .sEnd
-
+        
         {[ 
             %nested if else statements to implement if else 
             | 'elseif': 
@@ -508,14 +507,20 @@ IfStmt :
                 .sBegin
                 @IfStmt
                 .sEnd
-            | 'else':
+                >>
+            | *:
+                >  
+        ]}
+        [
+            | 'else' :
                 .sElse
                 .sBegin @Block .sEnd
-            | 'end':
-                >
-        ]}
+                
+        ]
+        'end'
         ';'
         ;
+        
 
 ChooseStmt :
         %   choose expression of
@@ -587,16 +592,15 @@ RepeatStmt :
     %   while expression ;
 
         .sRepeatStmt
-        {
-            .sBegin @Block .sEnd
-            [
-                | 'while':
-                    .sRepeatEnd
-                    >
-            ]
-        }
+        
+        .sBegin @Block .sEnd 
+
+        'while' .sRepeatEnd
+        
         @Expression .sNot
-        .sExpnEnd;
+        .sExpnEnd
+        ';'
+        ;
 
 Expression :
         @SimpleExpression
