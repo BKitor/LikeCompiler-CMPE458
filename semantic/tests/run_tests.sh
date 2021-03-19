@@ -18,6 +18,7 @@ blk_trace(){ ssltrace "$SEMBLK" $LIKE_LIB/semantic.def -e ; }
 var_trace(){ ssltrace "$SEMVAR" $LIKE_LIB/semantic.def -e ; }
 pkg_trace(){ ssltrace "$SEMPKG" $LIKE_LIB/semantic.def -e ; }
 
+nul(){ ptc -o3 -L $LIKE_LIB null.pt; }
 blk(){ ptc -o3 -L $LIKE_LIB block.pt; }
 var(){ ptc -o3 -L $LIKE_LIB variables.pt; }
 pkg(){ ptc -o3 -L $LIKE_LIB pkg.pt; }
@@ -28,6 +29,8 @@ if [ $# -ne 0 ]; then
     if [[ "$1" == *"v"* ]];then var_trace; fi
     if [[ "$1" == *"p"* ]];then pkg_trace; fi
 else
+    echo "-- semantic null ---"
+    nul
     echo "-- semantic block ---"
     blk
     echo "-- semantic variables ---"
