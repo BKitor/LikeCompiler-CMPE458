@@ -2325,8 +2325,10 @@ program SemanticAnalysis (output, semanticSsl, parseStream, temp, tCode, options
                     oValuePushChar:
                         { Push the value of the last string token to be accepted }
                         begin
+                            %What makes this different from oValuePushCodeAddress
+                            %Is there an assert we should do?
                             Assert((compoundToken = sStringLiteral), assert37);
-                            ValueStackPush(compoundTokenText[1]);
+                            ValueStackPush(codeAreaEnd);
                         end;
 
                     oValuePushStringLength:
@@ -2394,8 +2396,10 @@ program SemanticAnalysis (output, semanticSsl, parseStream, temp, tCode, options
                         case typeStkKind[typeStkTop] of
                             tpInteger, tpSubrange:
                                 dataAreaEnd := dataAreaEnd + wordSize;
-                            tpChar, tpBoolean:
+                            tpBoolean:
                                 dataAreaEnd := dataAreaEnd + byteSize;
+                            tpChar: 
+                                dataAreaEnd := dataAreaEnd + stringSize;
                             tpArray:
                                 begin
                                     assert (typeStkComponentLink[typeStkTop] <> null, assert59);
@@ -2404,7 +2408,8 @@ program SemanticAnalysis (output, semanticSsl, parseStream, temp, tCode, options
                                     kind := typeTblKind[typeStkComponentLink[typeStkTop]];
                                     if (kind = tpInteger) or (kind = tpSubrange) then
                                         size := size * wordSize;
-
+                                    if (kind = tpChar) then
+                                        size := size * stringSize;
                                     dataAreaEnd := dataAreaEnd + size
                                 end;
                         end;
@@ -2502,12 +2507,14 @@ program SemanticAnalysis (output, semanticSsl, parseStream, temp, tCode, options
                         { Emit the text of the last literal string accepted }
                         begin
                             Assert((compoundToken = sStringLiteral), assert45);
+
                             i := 1;
                             while i <= compoundTokenLength do
                                 begin
                                     EmitOutputToken(compoundTokenText[i]);
                                     i := i + 1;
                                 end
+                            EmitOutputToken(0);
                         end;
 
                     oEmitCaseBranchTable:
