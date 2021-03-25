@@ -392,7 +392,7 @@ PkgStatement:
     'is'
     .sBegin
         @Block
-    .sEnd
+    'end' .sEnd ';' 
     ;
 
 AssignmentOrCallStmt :

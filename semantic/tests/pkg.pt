@@ -1,0 +1,11 @@
+using output;
+
+pkg p is
+    public fun f is
+    end;
+    public var y : like 1;
+    public val z = 4;
+end;
+
+y += z;
+f;

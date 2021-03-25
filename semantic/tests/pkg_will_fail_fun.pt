@@ -1,0 +1,7 @@
+using output;
+
+pkg p is
+    fun f is
+    end;
+end;
+f;
