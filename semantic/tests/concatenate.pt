@@ -1,0 +1,6 @@
+using input;
+var S="Hello";
+var T="World";
+
+var output1 = S | T;
+var output2 =  "Hello" | "World" ;

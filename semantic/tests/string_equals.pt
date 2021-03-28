@@ -1,0 +1,6 @@
+using input,output;
+var hand = "string"; 
+var x=1;
+    if hand == "f" then
+        x=2;
+    end;

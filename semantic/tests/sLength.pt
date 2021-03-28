@@ -1,0 +1,6 @@
+using input, output;
+var y = "string";
+var z= #y;
+
+
+
