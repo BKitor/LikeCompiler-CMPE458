@@ -2,9 +2,5 @@
 using input, output;
 
 var infinitive : like "arreter";
-
-repeat
-    put ("Please give me a regular French 'er' verb (end with 'arreter')"); putln;
-    get (infinitive);
-    putln;
-while infinitive != "arreter";
+get (infinitive);
+getln;

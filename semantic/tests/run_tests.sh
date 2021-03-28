@@ -18,6 +18,7 @@ SEMCAT="ptc -o3 -t3 -L $LIKE_LIB concatenate.pt"
 SEMREP="ptc -o3 -t3 -L $LIKE_LIB repeat_string.pt"
 SEMNOT="ptc -o3 -t3 -L $LIKE_LIB string_not_equals.pt"
 SEMSEQ="ptc -o3 -t3 -L $LIKE_LIB string_equals.pt"
+SEMSUB="ptc -o3 -t3 -L $LIKE_LIB substring.pt"
 
 
 
@@ -34,6 +35,7 @@ cat_trace(){ ssltrace "$SEMCAT" $LIKE_LIB/semantic.def -e ; }
 rep_trace(){ ssltrace "$SEMREP" $LIKE_LIB/semantic.def -e ; }
 not_trace(){ ssltrace "$SEMNOT" $LIKE_LIB/semantic.def -e ; }
 seq_trace(){ ssltrace "$SEMSEQ" $LIKE_LIB/semantic.def -e ; }
+sub_trace(){ ssltrace "$SEMSUB" $LIKE_LIB/semantic.def -e ; }
 
 blk(){ ptc -o3 -L $LIKE_LIB block.pt; }
 var(){ ptc -o3 -L $LIKE_LIB variables.pt; }
@@ -52,6 +54,7 @@ if [ $# -ne 0 ]; then
     if [[ "$1" == *"r"* ]];then rep_trace; fi
     if [[ "$1" == *"a"* ]];then not_trace; fi
     if [[ "$1" == *"e"* ]];then seq_trace; fi
+    if [[ "$1" == *"d"* ]];then sub_trace; fi
 else
     echo "-- semantic block ---"
     blk
