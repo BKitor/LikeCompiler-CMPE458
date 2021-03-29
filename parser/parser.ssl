@@ -515,7 +515,7 @@ IfStmt :
             | 'else' :
                 .sElse
                 .sBegin @Block .sEnd
-                
+            |*:       
         ]
         'end'
         ';'
