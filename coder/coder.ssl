@@ -1,8 +1,8 @@
-%  PT Code Generator for Linux x86 Version 5.0
+%  PT Code Generator for Linux x86 Version 5.1
 %
 %  Date:  30 Jun 1980
 %        (x86 conversion Jan 2011)
-%        (Revised v5.0 - 10 Dec 2020)
+%        (Revised v5.1 - 8 Feb 2021)
 %
 %  Author:  Alan Rosselet, University of Toronto
 %           VAX, SUN, MIPS and x86 conversions by J.R. Cordy, Queen's University
@@ -1572,50 +1572,6 @@ OperandSubscriptIntegerPop:
     oOperandSetLength(word);
 
 
-OperandSubscriptCharPop:
-    % similar to above
-    [ oOperandChooseMode
-        | mManifest:
-            oOperandSwap
-            [ oOperandChooseMode
-                | mTempIndirect:
-                    oOperandSwap
-                    @OperandSubscriptNonManifestCharPop
-                | *:
-                    % tell the folder we are working on bytes
-                    oOperandSetLength(byte)     
-                    oOperandSwap
-                    oOperandFoldManifestSubscript
-                    oOperandPop
-            ]
-        | *:
-            @OperandSubscriptNonManifestCharPop
-    ]
-    oOperandSetLength(byte);
-
-
-OperandSubscriptBooleanPop:
-    % similar to above
-    [ oOperandChooseMode
-        | mManifest:
-            oOperandSwap
-            [ oOperandChooseMode
-                | mTempIndirect:
-                    oOperandSwap
-                    @OperandSubscriptNonManifestCharPop
-                | *:
-                    % tell the folder we are working on bytes
-                    oOperandSetLength(byte)     
-                    oOperandSwap
-                    oOperandFoldManifestSubscript
-                    oOperandPop
-            ]
-        | *:
-            @OperandSubscriptNonManifestCharPop
-    ]
-    oOperandSetLength(byte);
-
-
 OperandSubscriptNonManifestIntegerPop:
     [ oOptionTestChecking
         | yes:
@@ -1683,79 +1639,6 @@ OperandCheckedSubscriptNonManifestIntegerPop:
     oOperandSetLength(word);
 
 
-OperandPushArrayLowerBound:
-    % Push the value of the lower bound on the operand stack
-    [ oOperandChooseMode
-        | mStatic:
-            % For static arrays, we saved the bounds in the array table
-            oOperandPushArrayLowerBound
-        | *:
-            % Otherwise, we get the lower bound from the array 
-            % descriptor at run time
-            oOperandPushCopy                    % ... arraydesc, arraydesc
-            oOperandSetLength(word)             % ... arraydesc, lowerbound
-    ];
-
-
-OperandPushArrayUpperBound:
-    % Push the value of the upper bound on the operand stack
-    [ oOperandChooseMode
-        | mStatic:
-            % For static arrays, we saved the bounds in the bounds table
-            oOperandPushArrayUpperBound
-        | mTempIndirect:
-            % For parameter arrays, we get the upper bound from the array
-            % descriptor at run time
-            oOperandPushCopy                    % ... arraydesc, arraydesc
-            oOperandSetValue(four)              % ... arraydesc, arraydesc+4
-    ];
-
-
-EmitSubscriptRangeCheck:
-    % Check that the subscript on top of the operand stack
-    % is in the index range of the array second from top
-
-                                        % ... arraydesc, %T
-    oOperandSwap                        % ... %T, arraydesc
-    @OperandPushArrayUpperBound         % ... %T, arraydesc, upper
-    oOperandSwapLeftAndDest             % ... arraydesc, %T, upper
-    @EmitCmp                            %       cmpl    upper, %T
-    oOperandPushJumpCondition(iJgt)     % if subscript > upper, out of range
-    oEmitConditionalForwardBranch       %       jgt     fNN
-    oFixPushLastAddress
-    oOperandPop                         % ... arraydesc, %T, upper
-    oOperandPop                         % ... arraydesc, %T
-
-    oOperandSwap                        % ... %T, arraydesc
-    @OperandPushArrayLowerBound         % ... %T, arraydesc, lower
-    oOperandSwapLeftAndDest             % ... arraydesc, %T, lower
-    @EmitCmp                            %       cmpl    lower, %T
-    oOperandPushJumpCondition(iJge)     % if subscript >= lower, in range
-    oEmitConditionalForwardBranch       %       jge     fMM
-    oFixPushLastAddress
-    oOperandPop                         % ... arraydesc, %T, lower
-    oOperandPop                         % ... arraydesc, %T
-
-    oFixSwapAddresses                   % ... fMM, fNN
-    oFixForwardBranch                   % fNN:
-    oFixPopAddress
-    @EmitSubscriptAbort                 %       call    subscriptAbort
-    oFixForwardBranch                   % fMM:
-    oFixPopAddress;
-
-
-EmitSubscriptAbort:
-    % Emit a call to the subscript out of range abort trap
-    oOperandPushMode(mLineNum)                  % ... n                 
-    oOperandSetLength(word)
-    oEmitSingle(iPush)                          %       pushl   n
-    oOperandPop                                 % ...
-    oOperandPushMode(mTrap)                     
-    oOperandSetValue(trSubscriptAbort)
-    oEmitSingle(iCall)                          %       call    subscriptAbort
-    oOperandPop;                                %       (never returns)
-
-
 OperandUncheckedSubscriptNonManifestIntegerPop:
     % Optimized non-bounds checking subscript operation
     oOperandSwap                                % ... subscript, arraydesc
@@ -1809,6 +1692,28 @@ OperandUncheckedSubscriptNonManifestIntegerPop:
             oOperandSetMode(mTempIndirect)      % ... (%T)
             oOperandSetLength(word)
     ];
+
+
+OperandSubscriptCharPop:
+    % similar to above
+    [ oOperandChooseMode
+        | mManifest:
+            oOperandSwap
+            [ oOperandChooseMode
+                | mTempIndirect:
+                    oOperandSwap
+                    @OperandSubscriptNonManifestCharPop
+                | *:
+                    % tell the folder we are working on bytes
+                    oOperandSetLength(byte)     
+                    oOperandSwap
+                    oOperandFoldManifestSubscript
+                    oOperandPop
+            ]
+        | *:
+            @OperandSubscriptNonManifestCharPop
+    ]
+    oOperandSetLength(byte);
 
 
 OperandSubscriptNonManifestCharPop:
@@ -1911,6 +1816,203 @@ OperandUncheckedSubscriptNonManifestCharPop:
             oOperandSetMode(mTempIndirect)      % ... (%T)
             oOperandSetLength(byte)
     ];
+
+
+OperandSubscriptNonManifestBooleanPop:
+    [ oOptionTestChecking
+        | yes:
+            @OperandCheckedSubscriptNonManifestBooleanPop
+        | *:
+            @OperandUncheckedSubscriptNonManifestBooleanPop
+    ];
+
+
+OperandSubscriptBooleanPop:
+    % similar to above
+    [ oOperandChooseMode
+        | mManifest:
+            oOperandSwap
+            [ oOperandChooseMode
+                | mTempIndirect:
+                    oOperandSwap
+                    @OperandSubscriptNonManifestBooleanPop
+                | *:
+                    % tell the folder we are working on bytes
+                    oOperandSetLength(byte)     
+                    oOperandSwap
+                    oOperandFoldManifestSubscript
+                    oOperandPop
+            ]
+        | *:
+            @OperandSubscriptNonManifestBooleanPop
+    ]
+    oOperandSetLength(byte);
+
+
+OperandCheckedSubscriptNonManifestBooleanPop:
+    % Default bounds checking subscript operation
+
+    % Get subscript                             % ... arraydesc, subscript
+    @OperandForceIntoTemp                       % ... arraydesc, %T
+
+    % Check range if checking, otherwise don't bother
+    [ oOptionTestChecking
+        | yes:
+            @EmitSubscriptRangeCheck
+        | *:
+    ]
+
+    % Normalize subscript                       % ... arraydesc, %T
+    oOperandSwap                                % ... %T, arraydesc
+    @OperandPushArrayLowerBound                 % ... %T, arraydesc, lower
+    oOperandSwapLeftAndDest                     % ... arraydesc, %T, lower
+    @OperandSubtractPop                         %       subl lower, %T
+
+    % Add normalized subscript to array address
+    oOperandSwap                                % ... %T, arraydesc
+    [ oOperandChooseMode
+        | mStatic:
+            % Optimize by folding array offset into array descriptor address 
+            oOperandPushMode(mManifest)
+            oOperandSetLength(word)
+            oOperandSetValue(eight)
+            oOperandAddManifestValues           % ... %T, arraydesc+8, 8
+            oOperandPop                         % ... %T, arraydesc+8
+            @OperandForceAddressIntoTemp        %       mov     $arraydesc+8, %T2
+                                                % ... %T, %T2
+            % Add array address to normalized and scaled subscript
+            oEmitDouble(iAdd)                   %       addl    %T2, %T
+            @OperandPopAndFreeTemp              % ... %T
+        | *:
+            % Can't optimize
+            @OperandForceAddressIntoTemp        % ... %T, %T2
+            oOperandPushMode(mManifest)
+            oOperandSetLength(word)
+            oOperandSetValue(eight)             % ... %T, %T2, 8
+            oEmitDouble(iAdd)                   %       addl    $8, %T2
+            oOperandPop                         % ... %T, %T2
+            oEmitDouble(iAdd)                   %       addl    %T2, %T
+            @OperandPopAndFreeTemp              % ... %T
+    ]
+
+    % Result element address is in %T
+    oOperandSetMode(mTempIndirect)              % ... (%T)
+    oOperandSetLength(byte);
+
+
+OperandUncheckedSubscriptNonManifestBooleanPop:
+    % Optimized non-bounds checking subscript operation
+    oOperandSwap                                % ... subscript, arraydesc
+
+    [ oOperandChooseMode
+        | mTempIndirect:
+            % Var parameter array - don't know the characteristics
+            % until run time, so give up and use regular checked subscripting
+            oOperandSwap
+            @OperandCheckedSubscriptNonManifestBooleanPop
+
+        | mStatic:
+            % Any other array - know all the characteristics now,
+            % so optimize subscripting as best we can
+            oOperandSwap                        % ... arraydesc, subscript
+            @OperandForceIntoTemp               %       movl    subscript, %T
+            oOperandSwap                        % ... %T, arraydesc
+
+            % Fold lower bound into array address to avoid normalizing
+            % subscript at run time
+            oOperandPushArrayLowerBound         % ... %T, arraydesc, lower
+            oOperandSwap                        % ... %T, lower, arraydesc
+            oOperandSetMode(mManifest)          % (eliminate indirection)
+            oOperandPushMode(mManifest)         % ... %T, lower, arraydesc, 8
+            oOperandSetLength(word)
+            oOperandSetValue(eight)
+            oOperandAddManifestValues           % ... %T, lower, arraydesc+8, 8
+            oOperandPop                         % ... %T, lower, arraydesc+8
+            oOperandSwap                        % ... %T, arraydesc+8, lower
+            oOperandSubtractManifestValues      % ... %T, arraydesc+8-lower
+
+            % Add array base to subscript
+            oOperandSetMode(mStaticManifest)    % (u+normalizedArrayBase)
+            oEmitDouble(iAdd)                   %       addl    $u+normalizedArrayBase, %T
+            oOperandPop                         % ... %T
+
+            % Element address is in %T
+            oOperandSetMode(mTempIndirect)      % ... (%T)
+            oOperandSetLength(byte)
+    ];
+
+
+OperandPushArrayLowerBound:
+    % Push the value of the lower bound on the operand stack
+    [ oOperandChooseMode
+        | mStatic:
+            % For static arrays, we saved the bounds in the array table
+            oOperandPushArrayLowerBound
+        | *:
+            % Otherwise, we get the lower bound from the array 
+            % descriptor at run time
+            oOperandPushCopy                    % ... arraydesc, arraydesc
+            oOperandSetLength(word)             % ... arraydesc, lowerbound
+    ];
+
+
+OperandPushArrayUpperBound:
+    % Push the value of the upper bound on the operand stack
+    [ oOperandChooseMode
+        | mStatic:
+            % For static arrays, we saved the bounds in the bounds table
+            oOperandPushArrayUpperBound
+        | mTempIndirect:
+            % For parameter arrays, we get the upper bound from the array
+            % descriptor at run time
+            oOperandPushCopy                    % ... arraydesc, arraydesc
+            oOperandSetValue(four)              % ... arraydesc, arraydesc+4
+    ];
+
+
+EmitSubscriptRangeCheck:
+    % Check that the subscript on top of the operand stack
+    % is in the index range of the array second from top
+
+                                        % ... arraydesc, %T
+    oOperandSwap                        % ... %T, arraydesc
+    @OperandPushArrayUpperBound         % ... %T, arraydesc, upper
+    oOperandSwapLeftAndDest             % ... arraydesc, %T, upper
+    @EmitCmp                            %       cmpl    upper, %T
+    oOperandPushJumpCondition(iJgt)     % if subscript > upper, out of range
+    oEmitConditionalForwardBranch       %       jgt     fNN
+    oFixPushLastAddress
+    oOperandPop                         % ... arraydesc, %T, upper
+    oOperandPop                         % ... arraydesc, %T
+
+    oOperandSwap                        % ... %T, arraydesc
+    @OperandPushArrayLowerBound         % ... %T, arraydesc, lower
+    oOperandSwapLeftAndDest             % ... arraydesc, %T, lower
+    @EmitCmp                            %       cmpl    lower, %T
+    oOperandPushJumpCondition(iJge)     % if subscript >= lower, in range
+    oEmitConditionalForwardBranch       %       jge     fMM
+    oFixPushLastAddress
+    oOperandPop                         % ... arraydesc, %T, lower
+    oOperandPop                         % ... arraydesc, %T
+
+    oFixSwapAddresses                   % ... fMM, fNN
+    oFixForwardBranch                   % fNN:
+    oFixPopAddress
+    @EmitSubscriptAbort                 %       call    subscriptAbort
+    oFixForwardBranch                   % fMM:
+    oFixPopAddress;
+
+
+EmitSubscriptAbort:
+    % Emit a call to the subscript out of range abort trap
+    oOperandPushMode(mLineNum)                  % ... n                 
+    oOperandSetLength(word)
+    oEmitSingle(iPush)                          %       pushl   n
+    oOperandPop                                 % ...
+    oOperandPushMode(mTrap)                     
+    oOperandSetValue(trSubscriptAbort)
+    oEmitSingle(iCall)                          %       call    subscriptAbort
+    oOperandPop;                                %       (never returns)
 
 
 OperandPushExpressionAssignPopPop:

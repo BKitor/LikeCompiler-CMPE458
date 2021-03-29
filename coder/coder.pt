@@ -1,8 +1,8 @@
-{  PT Code Generator for Linux x86 Version 5.0
+{  PT Code Generator for Linux x86 Version 5.1
  
    Date:  30 Jun 1980
           (Linux x86 conversion Jan 2011)
-          {Revised v5.0 - 10 Dec 2020)
+          {Revised v5.1 - 8 Feb 2021)
  
    Author:  Alan Rosselet, University of Toronto
             VAX, SUN, MIPS and x86 conversions by J.R. Cordy, Queen's University
@@ -781,7 +781,11 @@ program Coder (output, coderSsl, tCode, object, options);
                         assert53:
                             write ('no allocated register in oTempFree');
                     end;
+
+		    write ('while processing line ', lineNumber);
+		    writeln;
                     writeln;
+
                     processing := false;
                     abort := true;
                 end;
