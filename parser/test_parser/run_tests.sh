@@ -53,6 +53,8 @@ if [ $# -ne 0 ]; then
     if [[ "$1" == *"i"* ]];then eif_trace; fi
 
 else
+    echo "-- test repear ---"
+    rep
     echo "-- test pkg ---"
     pkg
     echo "-- test var ---"

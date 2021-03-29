@@ -1,0 +1,7 @@
+using output;
+
+pkg p is
+    var y : like 1;
+end;
+
+y += 1;

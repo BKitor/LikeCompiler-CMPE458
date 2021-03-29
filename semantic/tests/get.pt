@@ -1,0 +1,6 @@
+// Program to conjugate regular French verbs
+using input, output;
+
+var infinitive : like "arreter";
+get (infinitive);
+getln;

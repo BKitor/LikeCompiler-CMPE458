@@ -1,7 +1,7 @@
-%  PT Semantic Analysis Pass Version 5.0
+%  PT Semantic Analysis Pass Version 5.1
 %
 %  Date  30 Jun 1980
-%        (Revised v5.0 - 10 Dec 2020)
+%        (Revised v5.1 - 8 Feb 2021)
 %
 %  Author  Alan Rosselet
 %
@@ -27,7 +27,6 @@ Input :
         sParmBegin
         sParmEnd
         sConst
-        sType
         sVar
         sProcedure
         sBegin
@@ -69,7 +68,18 @@ Input :
         sNot
         sNewLine
         sEndOfFile
-        lastSemanticToken = sEndOfFile;
+
+        sLike
+        sPackage
+        sPublic
+        sConcatinate
+        sRepeatString
+        sSubstring
+        sLength
+        sInitialValue
+        sCaseElse
+
+        lastSemanticToken = sCaseElse;
 
 Output :        
         % T-code tokens - must match input tokens in coder.ssl exactly!
@@ -133,6 +143,16 @@ Output :
         tTrapBegin
         tWriteEnd
         tReadEnd
+
+        tConcatinate
+        tRepeatString
+        tSubstring
+        tLength
+        tStringEQ
+        tInitialValue
+        tInitEnd
+        tCaseElse
+        tCaseElseEnd
 
         % Compound T-codes - T-code operations that take an operand
         tLiteralAddress
@@ -208,6 +228,9 @@ type Integer :
         two = 2
         three = 3
         ten = 10
+        
+        %Add string size to type Integer with a value of 256
+        stringSize = 256
 
         % These two sizes are machine dependent
         byteSize = 1
@@ -282,17 +305,25 @@ mechanism SymbolTable :
 
     oSymbolTblPopScope
         % Pop the lexic level stack and unlink all names local to the scope.
-        % Remove all local entries from the type table, and all local entries 
-        % except parameter entries from the symbol table. 
+        % Remove all local entries from the symbol and type tables.
 
-    oSymbolTblLookupExternal >> Boolean;
+    oSymbolTblPreserveParameters
+        % Restore procedure parameter entries to the symbol table 
+        % after popping the scope.
+
+    oSymbolTblLookupExternal >> Boolean
         % Return true if any external names (program parameters)
         % have not yet been declared.
+
+    oSymbolTblMergePublicScope;
+        % megere a package scope with preveous scope, unlinks symbols not 
+        % marked as public
 
 
 % Symbol Stack types and mechanism
 
 type SymbolKind :
+        syPackage
         syConstant
         syType
         syVariable
@@ -391,10 +422,15 @@ mechanism SymbolStack :
         % If the top entry is a standard routine symbol, return a
         % value indicating which routine it is, otherwise return null.
 
-    oSymbolStkPop;
+    oSymbolStkPop
         % Pop the symbol stack
+    
+    oSymbolStkSetPublicFlag;
+        % set the public flag field to true 
 
 mechanism TypeTable :
+    %|         TypeTable               |
+    %|{type,lower bound,upper bound, component type????  }|
     % A type table entry consists of 4 fields:  a type kind (e.g. integer,
     % char), a lower bound and an upper bound for array or subrange types
     % (these sometimes contain other information such as number of parameters
@@ -418,7 +454,7 @@ type TypeKind :
         tpBoolean
         tpSubrange
         tpArray
-        tpString        % special type for string literals
+        %tpString  REMOVE?      % special type for string literals
         tpFile
         tpNull;
 
@@ -512,12 +548,13 @@ type TrapKind :
         trReadln = 4
         trWrite = 5
         trWriteln = 6
-        trWriteString = 7
+        trWriteString = 109
         trWriteInteger = 8
         trWriteChar = 9
         trReadInteger = 10
         trReadChar = 11
-        trAssign = 12;
+        trAssign = 12
+        trReadString = 108;
 
 mechanism Emit :
     % Emit writes to the output "t-code" stream (the code area),
@@ -572,6 +609,8 @@ mechanism Allocate :
 
 
 mechanism ValueStack :
+    %   | ValueStack |
+    %   |  {Integer} |
     % The value stack holds integer values.  It is used during
     % declaration processing to handle values associated with
     % symbols (e.g. constant symbol values) and types (e.g. array
@@ -614,6 +653,8 @@ mechanism ValueStack :
 
 
 mechanism CaseStack :
+    %   |             Casestack              |
+    %   | {Label Value} | {statement pointer}|
     % The case stack mechanism is used only in processing case
     % statements.  A case stack entry consists of two fields:
     % a label value and a code area pointer which references the
@@ -699,6 +740,7 @@ Program :
         sProgram
         % Program scope, distinct from implicit scope surrounding
         % program which contains predefined names
+        oSymbolStkPush(syProcedure)
         oSymbolTblPushScope
         % Count is used to assign file descriptors to non-standard
         % files.  We assume that "input" has file descriptor 1,
@@ -712,7 +754,8 @@ Program :
                 @ProgramParameter
         ]}
         oCountPop
-        @Block
+        % change block to statement in order to match program sBegin
+        @Statement
         % Check that all file parameters have been declared
         [ oSymbolTblLookupExternal
             | yes:
@@ -721,6 +764,7 @@ Program :
         ]
         % Pop program scope
         oSymbolTblPopScope
+        oSymbolStkPop
         % Return control to the runtime
         % monitor at the end of program execution
         .tTrapBegin
@@ -774,21 +818,66 @@ ProgramParameter :
 Block :
         % The parser has flagged phase errors, but has emitted out-of-phase
         % definitions with the intent of providing better error repair.
-
-        {[
+        [
             | sProcedure:
                 @ProcedureDefinition
             | sConst:
                 @ConstantDefinitions
-            | sType:
-                @TypeDefinitions
             | sVar:
                 @VariableDeclarations
+
+            % moved contents of Statement to be matched in block and remove sType
+            | sAssignmentStmt:
+                @AssignmentStmt
+            | sCallStmt:
+                @CallStmt
+            | sIfStmt:
+                @IfStmt
+            | sWhileStmt:
+                @WhileStmt
+            | sCaseStmt:
+                @CaseStmt
+            | sRepeatStmt:
+                @RepeatStmt
+            | sNullStmt:
+
+            | sPackage:
+                @PackageDefinition % New PackageDefinition rule for packages
+        ]
+        ;
+
+PackageDefinition :
+        % Add sysmbol to table
+        sIdentifier oSymbolStkPushLocalIdentifier
+        [ oSymbolStkChooseKind % touch of error chekcing
+            | syUndefined:
+            | syExternal:
+                % Program parameters must be declared as file variables
+                #eExternalDeclare
             | *:
-                >
-        ]}
+                #eMultiplyDefined
+                % New definition obscures old one.
+        ]
+        oSymbolStkSetKind(syPackage)
+        oTypeStkPush(tpNull)
+        oTypeTblEnter
+        oSymbolStkEnterTypeReference
+        oSymbolTblEnter
+
+        % Statement calls oSymbolTblPopScope, so we reimpliment it here
         sBegin
-        @BeginStmt;
+        oSymbolTblPushScope
+        {[
+            | sEnd:
+                >
+            | *:
+                @Block
+        ]}
+
+        oTypeStkPop
+        oSymbolStkPop
+        oSymbolTblMergePublicScope
+        ;
 
 ConstantDefinitions :           % Process named constant definitions
         {[
@@ -803,6 +892,12 @@ ConstantDefinitions :           % Process named constant definitions
                         #eMultiplyDefined
                         % The new definition will now obscure the old one
                 ]
+                [
+                    | sPublic :
+                        oSymbolStkSetPublicFlag
+                    | *:
+                ]
+
                 oSymbolStkSetKind(syConstant)
                 @ConstantValue
                 oSymbolStkEnterTypeReference
@@ -858,32 +953,6 @@ ConstantValue :         % push the value and type of the constant value
                 @StringLiteral  % pushes type and value, enters address
         ];
 
-TypeDefinitions :       % process named type definitions
-        {[
-            | sIdentifier:
-                oSymbolStkPushLocalIdentifier
-                [ oSymbolStkChooseKind
-                    | syUndefined:
-                    | syExternal:
-                        % Program parameters must be declared as file variables
-                        #eExternalDeclare        % ignore this declaration
-                    | *:
-                        #eMultiplyDefined
-                        % The new definition will obscure the old one
-                ]
-                oSymbolStkSetKind(syType)
-
-                % Accepts a type specification and pushes its type to the Type Stack.
-                % Creates type table entries for the type and any new subtypes as necessary.
-                @TypeBody
-
-                oSymbolStkEnterTypeReference
-                oTypeStkPop
-                oSymbolTblEnter
-                oSymbolStkPop
-            | *:
-                >
-        ]};
 
 TypeBody :
         % Accept a type specification and push a Type Stack entry for it.
@@ -910,17 +979,16 @@ TypeTblEnterIfNew:
         ];
 
 IndexType :
-        % Accept and fill in index bounds of array type stack entry
-        @SimpleType     % pushes index type
-        [ oTypeStkChooseKind
-            | tpSubrange:
-                oValuePushTypeStkLowerBound
-                oValuePushTypeStkUpperBound
-            | *:
-                oValuePush(one)
-                oValuePush(two)
-        ]
+        % Gets the size of an array
+        % remove the use of simple type, use lower bound 1 and @ContstantType
+
+        oValuePush(One)    % sets lower bound to 1
+        @ConstantValue     % pushes vaule and type
+
+        % could maybe do some type checking here
+        
         oTypeStkPop      % index type
+
         % Enter and check the bounds of the array type
         oTypeStkEnterBounds
         [ oTypeStkVerifyBounds
@@ -950,79 +1018,36 @@ ComponentType :
         oTypeStkPop;
 
 SimpleType :
-        % Accept a simple type and push a type stack entry for it.
+        % Pushes either a Identifier's type or an stdInterger(for now) to the top of the type stack
+        sLike
         [
             | sIdentifier:
                 oSymbolStkPushIdentifier
-                [ 
-                    | sRange:                   % subrange specification
-                        [ oSymbolStkChooseKind
-                            | syConstant:       
-                                oTypeStkPushSymbol
-                                [ oTypeStkChooseKind
-                                    | tpInteger:        
-                                        oValuePushSymbol
-                                    | *:
-                                        #eIntegerConstReqd
-                                        oValuePush(one)
-                                ]
-                                [
-                                    | sNegate:
-                                        oValueNegate
-                                    | *:
-                                ]
-                                oTypeStkPop
-                            | syUndefined:
-                                #eUndefinedIdentifier
-                                oValuePush(one)
-                            | *:
-                                #eIntegerConstReqd
-                                oValuePush(one)
-                        ]
-                        @SubrangeUpperBound     % pushes value on value stack
-                        oTypeStkPush(tpSubrange)
-                        oTypeStkEnterBounds
-                        oValuePop
-                        oValuePop
-                    | *:        
-                        % type identifier
-                        [ oSymbolStkChooseKind
-                            | syType:
-                                oTypeStkPushSymbol
-                            | syUndefined:
-                                #eUndefinedIdentifier
-                                oSymbolStkPop
-                                oValuePush(one)
-                                oValuePush(one)
-                                oTypeStkPush(tpSubrange)
-                                oTypeStkEnterBounds
-                                oValuePop
-                                oValuePop
-                            | *:
-                                #eSimpleTypeReqd
-                                oSymbolStkPop
-                                oValuePush(one)
-                                oValuePush(one)
-                                oTypeStkPush(tpSubrange)
-                                oTypeStkEnterBounds
-                                oValuePop
-                                oValuePop
-                        ]
+                % type identifier
+                [ oSymbolStkChooseKind
+                    | syVariable:
+                        oTypeStkPushSymbol
+                    | syConstant:
+                        oTypeStkPushSymbol 
+
+                    | syUndefined :
+                        #eUndefinedIdentifier
+                        oTypeStkPush(tpInteger)
+                        oTypeStkLinkToStandardType(stdInteger)
+                    | *:
+                        #eSimpleTypeReqd
+                        oTypeStkPush(tpInteger)
+                        oTypeStkLinkToStandardType(stdInteger)
                 ]
                 oSymbolStkPop
-            | sInteger:         % lower bound of subrange specification
-                oValuePushInteger
-                [
-                    | sNegate:
-                        oValueNegate
-                    | *:
-                ]
-                sRange
-                @SubrangeUpperBound     % pushes value on value stack
-                oTypeStkPush(tpSubrange)
-                oTypeStkEnterBounds
-                oValuePop
-                oValuePop
+            | sInteger:         
+                oTypeStkPush(tpInteger)
+                oTypeStkLinkToStandardType(stdInteger)
+%=====================================================================
+            | sStringLiteral:         
+                oTypeStkPush(tpChar)
+                oTypeStkLinkToStandardType(stdChar)
+%=====================================================================
             | *:
                 #eSimpleTypeReqd
                 oTypeStkPush(tpInteger)
@@ -1066,27 +1091,48 @@ SubrangeUpperBound :
         ];
 
 VariableDeclarations :
-        {[
-            | sIdentifier:
-                oSymbolStkPushLocalIdentifier
+        % remove {} to only accept 1 identifier
+        
+        sIdentifier
+        oSymbolStkPushLocalIdentifier
 
-                % Check not previously defined
-                [ oSymbolStkChooseKind
-                    | syUndefined, syExternal:
-                    | *:
-                        #eMultiplyDefined
-                        % The new definition will obscure the old one
-                ]
+        % Check not previously defined
+        [ oSymbolStkChooseKind
+            | syUndefined, syExternal:
+            | *:
+                #eMultiplyDefined
+                % The new definition will obscure the old one
+        ]
+        [
+            | sPublic: % chekc for public flag
+                oSymbolStkSetPublicFlag
+            | *:
+        ] 
 
+        [
+            | sInitialValue:    % check if initial value, otherwise match like clause
+
+                % add properties to type/symbol stacks
+                @Expression     % Get value and type of expression
+                oSymbolStkPop   % pop Expression from stack
+                @TypeTblEnterIfNew
+                @EnterVariableAttributes
+                % Reverse Assignment of Value to var tLiteralAddress emitStore 
+                .tLiteralInteger
+                .tLiteralAddress
+                @EmitStore
+                oTypeStkPop     % pop expression from stack
+                
+
+            | *:
                 % Accepts a type specification and pushes its type to the Type Stack.
                 % Creates type table entries for the type and any new subtypes as necessary.
-                @TypeBody
-                @EnterVariableAttributes
-                oTypeStkPop
-                oSymbolStkPop
-            | *:
-                >
-        ]};
+                @TypeBody       % find sLike type
+                @EnterVariableAttributes    
+                oTypeStkPop     % pop sLike Type
+        ]
+        oSymbolStkPop   % pop var identifier
+        ;
 
 EnterVariableAttributes :
         % Enter the type on top of the Type Stack as the type of 
@@ -1193,6 +1239,14 @@ ProcedureDefinition :
                 #eMultiplyDefined
                 % New definition obscures old one.
         ]
+
+        [
+            | sPublic : % check for public flag
+                oSymbolStkSetPublicFlag
+            | *:
+        ]
+
+
         % Procedure bodies only execute when the routine is called
         % so we need to branch around the procedure's code
         .tSkipProc              % branch around procedure definition
@@ -1208,17 +1262,20 @@ ProcedureDefinition :
         oTypeTblEnter
         oSymbolStkEnterTypeReference
         oSymbolTblEnter
+
         oSymbolTblPushScope     % procedure scope
 
         @ProcedureHeading
-        @Block
+        @Statement      % Switch from Block to Statement, might run into issues with scopes? 
 
-        oSymbolTblUpdate
-        oSymbolStkPop
         oTypeStkSetRecursionFlag(no)
         oTypeTblUpdate
         oTypeStkPop
+        oSymbolTblUpdate
+        oSymbolStkPop
+
         oSymbolTblPopScope
+        oSymbolTblPreserveParameters
 
         .tProcedureEnd
         oFixPopForwardBranch;   % fix branch around procedure above
@@ -1254,25 +1311,14 @@ ProcedureHeading :
         ]}
         @ProcedurePrologue;                    % pops types from type stack
 
+        
+
 ProcedureParameterType :
         % A local procedure's formal parameters must
         % be declared using named types.
+        @SimpleType     % Put like clause type on type stack
 
-        sIdentifier  oSymbolStkPushIdentifier   % formal parameter type
-        [ oSymbolStkChooseKind
-            | syUndefined:
-                #eUndefinedIdentifier
-            | *:
-        ]
-        [ oSymbolStkChooseKind
-            | syType:
-                oTypeStkPushSymbol
-            | *:
-                #eTypeIdentifierReqd
-                oTypeStkPush(tpInteger)
-                oTypeStkLinkToStandardType(stdInteger)
-        ]
-        oSymbolStkPop                           % parameter type symbol
+        % Remove Pascal type identification 
 
         [ oSymbolStkChooseKind
             | syVariable:
@@ -1324,24 +1370,17 @@ ProcedurePrologue :
         oTypeStkEnterParameterCount     % In procedure's type entry
         oCountPop;
 
+% Statement matches an sBegin, and calls block until it matches an sEnd
 Statement :
-        [
-            | sAssignmentStmt:
-                @AssignmentStmt
-            | sCallStmt:
-                @CallStmt
-            | sBegin:
-                @BeginStmt
-            | sIfStmt:
-                @IfStmt
-            | sWhileStmt:
-                @WhileStmt
-            | sCaseStmt:
-                @CaseStmt
-            | sRepeatStmt:
-                @RepeatStmt
-            | sNullStmt:
-        ];
+        sBegin
+        oSymbolTblPushScope
+        {[
+            | sEnd:
+                oSymbolTblPopScope
+                >
+            | * :
+              @Block 
+        ]};
 
 AssignmentStmt :
         sIdentifier  oSymbolStkPushIdentifier
@@ -1383,14 +1422,6 @@ EmitStore:
                 .tStoreBoolean
             | *:                
         ];
-
-BeginStmt :
-        {[
-            | sEnd:
-                >
-            | *:
-                @Statement
-        ]};
 
 CallStmt :
         sIdentifier  oSymbolStkPushIdentifier   % Procedure being called
@@ -1571,11 +1602,12 @@ RepeatStmt :
         .tRepeatTest
         oFixPopTargetAddress;
 
+
 CaseStmt :
         .tCaseBegin
         @CaseSelectorExpression
         oCasePushDisplay        % handle nested case statements
-        oCountPush (zero)       % count case alternative statements
+        oCountPush (zero)       % count case alternative statements, why zero?
         .tCaseSelect
         oFixPushForwardBranch
         oEmitNullAddress        % address of case branch table
@@ -1586,8 +1618,11 @@ CaseStmt :
                 @CaseAlternative
         ]}
         .tCaseEnd
+
+
         oFixPopForwardBranch
         oEmitCaseBranchTable
+
         % emit merge branches for case alternatives
         {[ oCountChoose         % number of case alternatives
             | zero:
@@ -1712,15 +1747,12 @@ Operand :
             | sStringLiteral:
                 oSymbolStkPush(syExpression)
                 @StringLiteral  % pushes type and value
-                [ oTypeStkChooseKind
-                    | tpChar:
-                        .tLiteralChar
-                        oEmitValue
-                    | *:
-                        .tLiteralString
-                        oEmitValue
-                ]
+                .tLiteralAddress
+                oValuePushChar
+                oEmitValue
                 oValuePop
+                .tFetchChar
+                oValuePop       %NOT SURE WHY I NEED THIS BUT I NEED THIS
             | sFile:
                 @Expression
                 @FileOperand
@@ -1734,42 +1766,33 @@ StringLiteral :
         % The value of a packed array is its address.
 
         oValuePushStringLength
-        [ oValueChoose
-            | zero:
-                #eNullString
-                oTypeStkPush(tpChar)
-                oTypeStkLinkToStandardType(stdChar)
-                oValuePop
-                oValuePush(zero)
-            | one:
-                oTypeStkPush(tpChar)
-                oTypeStkLinkToStandardType(stdChar)
-                oValuePop
-                oValuePushChar
-            | *:
                 % branch around the literal string since
                 % it is stored in the code area
-                .tSkipString
-                oFixPushForwardBranch
-                oEmitNullAddress
-                .tStringData
-                oEmitValue                      % string length
+                .tSkipString     
+               oFixPushForwardBranch
+               oEmitNullAddress
+               .tStringData
+               oEmitValue                      % string length
                 oValuePop
-                oValuePushCodeAddress           % The string's characters are in the code area
+                oValuePushChar          % The string's characters are in the code area
                 oValueNegate                    % encode that with a negative address
                 oEmitString                     % string's characters
                 oFixPopForwardBranch
-                oTypeStkPush(tpString)
-                oValuePush(one)                 % strings are indexed from 1
-                oValuePushStringLength
-                oTypeStkEnterBounds
-                oValuePop
-                oValuePop
-                oTypeTblEnter
-        ];
+%=================================================================================
+                %oTypeStkPush(tpString)         %Char=String now so we dont use tpString we use tp CHar
+                oTypeStkPush(tpChar)
+                oTypeStkLinkToStandardType(stdChar) %Don't forget stdChar
+%=================================================================================
+%                oValuePush(one)                 % strings are indexed from 1
+%                oValuePushStringLength
+%                oTypeStkEnterBounds
+%                oValuePop
+%                oValuePop
+                oTypeTblEnter;
 
 UnaryOperator :
-        [
+        [   
+            
             | sNegate:
                 .tNegate
                 oTypeStkPush(tpInteger) % result type
@@ -1780,17 +1803,50 @@ UnaryOperator :
                 oTypeStkPush(tpBoolean) % result type
                 @CompareAndSwapTypes
                 oTypeStkPop
+            | sLength:
+                .tLength
+                oTypeStkPush(tpInteger) % result type
+                    oTypeStkSwap
+                    [ oTypeStkChooseKind
+                        | tpChar:
+                        | *:
+                            #eTypeMismatch
+
+                    ] 
+                oTypeStkPop
+
+                
             | *:
                 >>
         ]
         % If an operator is present the result is an expression
         oSymbolStkSetKind(syExpression);
 
+
 BinaryOperator :
         % Choice should be ordered by frequency of occurrence of alternatives.
         % Could make this a cycle (comment applies to UnaryOperator as well)
         % but that would probably be less efficient on average.
-        [
+        [              
+            | sRepeatString:
+                .tRepeatString
+                %Emulating @CompareAndSwapTypes because its made only for matching types
+                oTypeStkPush(tpChar)
+                oTypeStkSwap
+                [ oTypeStkChooseKind
+                    | tpInteger:
+                    | *:
+                        #eTypeMismatch
+                ]
+                oTypeStkPop
+                @CompareAndSwapTypes
+                oTypeStkPop             % only result type remains
+                oSymbolStkPop
+                oSymbolStkSetKind(syExpression)
+            | sConcatinate:
+                .tConcatinate
+                oTypeStkPush(tpChar) % result type
+                @CompareOperandAndResultTypes
             | sAdd:
                 .tAdd
                 oTypeStkPush(tpInteger) % result type
@@ -1812,10 +1868,21 @@ BinaryOperator :
                 oTypeStkPush(tpBoolean)
                 @CompareOperandAndResultTypes
             | sEq:
-                .tEQ
+                [ oTypeStkChooseKind
+                    | tpChar:
+                        .tStringEQ
+                    |*:
+                        .tEQ
+                ]
                 @CompareEqualityOperandTypes
             | sNE:
-                .tNE
+                [ oTypeStkChooseKind
+                    | tpChar:
+                        .tNot
+                        .tStringEQ
+                    |*:
+                        .tNE 
+                ]
                 @CompareEqualityOperandTypes
             | sGT:
                 .tGT
@@ -1841,6 +1908,30 @@ BinaryOperator :
                 .tModulus
                 oTypeStkPush(tpInteger)
                 @CompareOperandAndResultTypes
+            | sSubstring:
+                .tSubstring
+                 %Emulating @CompareAndSwapTypes because its made only for matching types
+                oTypeStkPush(tpChar)
+                oTypeStkSwap
+                [ oTypeStkChooseKind
+                    | tpInteger:
+                    | *:
+                        #eTypeMismatch
+                ]
+                oTypeStkPop
+                oTypeStkSwap
+                [ oTypeStkChooseKind
+                    | tpInteger:
+                    | *:
+                        #eTypeMismatch
+                ]
+                oTypeStkPop
+                @CompareAndSwapTypes
+                oTypeStkPop             % only result type remains
+                oSymbolStkPop
+                oSymbolStkPop
+                oSymbolStkSetKind(syExpression)
+
             | *:
                 >>
         ]
@@ -1879,13 +1970,6 @@ CompareAndSwapTypes :
                 oTypeStkSwap
                 [ oTypeStkChooseKind
                     | tpArray:
-                    | *:
-                        #eTypeMismatch
-                ]
-            | tpString:
-                oTypeStkSwap
-                [ oTypeStkChooseKind
-                    | tpString:
                     | *:
                         #eTypeMismatch
                 ]
@@ -2056,14 +2140,19 @@ ConstantOperand :
                 .tLiteralInteger
                 oEmitValue
             | tpChar:
-                .tLiteralChar
-                oEmitValue
+                .tLiteralAddress	
+	            oValuePushSymbol	
+	            oEmitValue	
+	            oValuePop	
+                .tFetchChar
             | tpBoolean:
                 .tLiteralBoolean
                 oEmitValue
-            | tpString:         % a named literal string
-                .tLiteralString
-                oEmitValue
+%=================================================================================
+%            | tpString:         % a named literal string
+%                .tLiteralString %Not used because tLiteralChar????????
+%                oEmitValue
+%=================================================================================
         ]
         oValuePop;
 
@@ -2249,7 +2338,10 @@ AssignProcedure :
                     | *:
                         @Expression                     % pushes symbol and type
                         [ oTypeStkChooseKind
-                            | tpString:
+%=================================================================================
+%                            | tpString:
+                            | tpChar:
+%================================================================================
                                 % literal string
                             | tpArray:
                                 % a char array with lower bound 1
@@ -2282,7 +2374,10 @@ AssignProcedure :
                         .tParmEnd
                         % need the length of the file name as well
                         [ oTypeStkChooseKind
-                            | tpString, tpArray:   
+%=================================================================================
+%                            | tpString, tpArray: 
+                            | tpChar, tpArray:  
+%=================================================================================
                                 .tLiteralInteger
                                 oValuePushTypeStkUpperBound
                                 oEmitValue
@@ -2478,7 +2573,10 @@ WriteText :
                 [ oTypeStkChooseKind    % of expression being written
                     | tpInteger, tpSubrange:
                         oValuePush(ten)
-                    | tpString:
+%================================================================================                        
+%                    | tpString:
+                    | tpChar:
+%================================================================================
                         oValuePushTypeStkUpperBound     % actual length of string
                     | *:        
                         % error flagged below
@@ -2492,13 +2590,18 @@ WriteText :
         [ oTypeStkChooseKind
             | tpChar:
                 .tTrap
-                oEmitTrapKind(trWriteChar)
+%================================================================================                 
+%               oEmitTrapKind(trWriteChar)
+                oEmitTrapKind(trWriteString)
+%================================================================================
             | tpInteger, tpSubrange:
                 .tTrap
                 oEmitTrapKind(trWriteInteger)
-            | tpString: 
-                .tTrap
-                oEmitTrapKind(trWriteString)
+%================================================================================                
+%            | tpString: 
+%                .tTrap
+%                oEmitTrapKind(trWriteString)
+%================================================================================
             | tpArray:                  % must be a char array 
                 oTypeStkPushComponent
                 [ oTypeStkChooseKind
@@ -2777,7 +2880,10 @@ ReadText :
         [ oTypeStkChooseKind
             | tpChar:
                 .tTrap
-                oEmitTrapKind(trReadChar)
+%====================================================================
+%                oEmitTrapKind(trReadChar)
+                oEmitTrapKind(trReadString)
+%====================================================================
             | tpInteger, tpSubrange:
                 .tTrap
                 oEmitTrapKind(trReadInteger)

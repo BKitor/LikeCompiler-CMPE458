@@ -1,0 +1,3 @@
+using input;
+var S = "Hello"; 
+var repString = S || 2;
