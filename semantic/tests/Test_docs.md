@@ -1,4 +1,23 @@
 # CMPE/CISK 458 Group K Assignemnt 3 Test Docs
+
+### null '$./run_tests n'
+This is a unit test for the null program. It was used to validate that the initial semantic phase works properly.
+
+### block '$./run_tests b'
+This unit test is used to validate that the initial restructuring of the block works properly. 
+It also also tests some of the code samples that din't require changes to make sure they work out of the box. 
+These tests include val, if/elseif/else, and repear/while.
+
+### variables '$./run_tests v'
+This unit test was added after updating variables. 
+It only tests intergers, as strings had not been implimented yet (strigns are tested later). 
+It also tests function parameter delcarations, ensuring that the like clause works properly. 
+
+### packages '$./run_tests b' './run_fail_test.sh'
+These tests validate that the pkg & public were implimented properly. 
+There is a positive test that asserts var/val/fun delcared public in a package can be accesed outside of a package. 
+There are three negative tests asserting that non public var/val/fun can't be accessed outside pkgs.
+
 ### substring '$./run_tests d'
 Validate usage of substring through / operator
 Runs substring.pt
@@ -10,7 +29,7 @@ tLiteralInteger
 sSubstring
 ```
 using output;
-   var string = "Hi there" / 1:2;
+var string = "Hi there" / 1:2;
 ```
 ### Get '$./run_tests g'
 Validating usage of get with modification for strings  
