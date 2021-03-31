@@ -20,10 +20,10 @@
 
 
 Input:
-        % T-code tokens - must match output tokens in semantic.ssl exactly!
+        % T-code tokens - must match input tokens in coder.ssl exactly!
 
         % Non-compound T-codes - T-code operations take no operands
-        tMultiply
+        tMultiply 
         firstTcode = tMultiply
         tDivide
         tModulus
@@ -81,6 +81,16 @@ Input:
         tTrapBegin
         tWriteEnd
         tReadEnd
+
+        tConcatinate
+        tRepeatString
+        tSubstring
+        tLength
+        tStringEQ
+        tInitialValue
+        tInitEnd
+        tCaseElse
+        tCaseElseEnd
 
         % Compound T-codes - T-code operations that take an operand
         tLiteralAddress
