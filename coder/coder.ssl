@@ -135,6 +135,7 @@ type Integer:
         four = 4
         eight = 8
         twelve = 12
+        twofiftysix = 256
 
         % Temporary registers
         regAX = 1   %eax
@@ -150,7 +151,6 @@ type Integer:
         trReadln = 4
         trWrite = 5
         trWriteln = 6
-        trWriteString = 7
         trWriteInteger = 8
         trWriteChar = 9
         trReadInteger = 10
@@ -161,8 +161,19 @@ type Integer:
         trEoln = 15
         trEof = 16
 
+        trAssignString = 101
+        trChrString = 102
+        trConcatenate = 103
+        trSubstring = 104
+        trLength = 105
+        trStringEqual= 107
+        trReadString = 108
+        trWriteString = 109
+        trRepeatString = 110
+
         % Data kinds
         byte = 1
+        string = 3
         word = 2;   % 4 bytes on x86
 
 
