@@ -6,7 +6,7 @@ cd tests
 
 LIKE_LIB=../../lib/pt
 
-PT_TEST_FILES=( "null" "put" )
+PT_TEST_FILES=( "null" "put" "choose" )
 
 like_run_test(){ # takes the name of a test (without .pt) as arg 1 
     echo "*** compiling $f.pt ***"
@@ -22,6 +22,7 @@ SEMNUL="ptc -S -L $LIKE_LIB null.pt"
 if [ $# -ne 0 ]; then
     if [[ "$1" == *"n"* ]];then like_run_test null; fi
     if [[ "$1" == *"w"* ]];then like_run_test put; fi
+    if [[ "$1" == *"c"* ]];then like_run_test choose; fi
 else
     for f in "${PT_TEST_FILES[@]}"; do
         like_run_test $f

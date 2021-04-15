@@ -1,0 +1,9 @@
+using output;
+    choose 3 of
+        when 2 then
+            put(69420);
+        when 1 then
+            put(69421);
+        else
+            put(69422);       
+        end;
