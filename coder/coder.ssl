@@ -786,11 +786,27 @@ Block:
         | tTrapBegin:
             @TrapStmt
 
+        | tInitialValue:
+            @InitialValue
+
         | *:
             >
     ]}
     ;
 
+InitialValue:
+    @OperandPushExpression
+    tInitEnd
+    tLiteralAddress
+    @OperandPushVariable
+    oOperandSwap
+    [
+        | tStoreInteger:
+            @OperandAssignIntegerPopPop
+        | tStoreChar:
+            @OperandAssignCharPopPop
+    ]
+    ;
 
 Routine:
     oEmitProcLabel(mProc)                       % pNN:
