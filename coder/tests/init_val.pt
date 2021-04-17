@@ -1,0 +1,10 @@
+using output;
+
+val i = 333;
+var k = 2 * i;
+var j = k + 334;
+put(k);
+put(j);
+
+// var s = "tst";
+// put(s);

@@ -1111,16 +1111,24 @@ VariableDeclarations :
 
         [
             | sInitialValue:    % check if initial value, otherwise match like clause
-
+                .tInitialValue
                 % add properties to type/symbol stacks
                 @Expression     % Get value and type of expression
-                oSymbolStkPop   % pop Expression from stack
+                .tInitEnd
                 @TypeTblEnterIfNew
+                oSymbolStkPop   % pop Expression from stack
                 @EnterVariableAttributes
                 % Reverse Assignment of Value to var tLiteralAddress emitStore 
-                .tLiteralInteger
                 .tLiteralAddress
-                @EmitStore
+                oValuePushSymbol
+                oEmitValue
+                oValuePop
+                [ oTypeStkChooseKind
+                    | tpArray:
+                        #eScalarReqd	% can't assign whole arrays
+                    | *:                
+                        @EmitStore
+                ]
                 oTypeStkPop     % pop expression from stack
                 
 
