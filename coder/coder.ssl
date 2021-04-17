@@ -248,7 +248,9 @@ mechanism Temp:
 
 
 mechanism OperandStack:
-
+    % |addressMode | operand value | length |
+    %       or
+    % | Branch Op. | shunt (true br.) list head | false branch list head|
     %     An operand stack entry consists of 3 fields: a kind field which
     %   describes the entry (may be an addressing mode or a branch operation
     %   (e.g. bne)), a value field which contains either the operand value
@@ -1239,7 +1241,20 @@ EmitDefaultCaseAbort:
     oFixPushAddress                     % bNNN:         (label for abort)
     oFixSwapAddresses                   % (keep branch around case body on top)
     oEmitMergeSourceCoordinate
-
+    
+    %=================================================================
+    %conditional, if else statement, use theStatementsrule to handle its statements and emit a case merge branch
+	% emit oEmitCaseMergeBranch
+    %Otherwise emit a call to the case abort trap
+    [
+        | tCaseElse:
+            % use theStatementsrule to handle its statements
+            @Block
+            % emit a case merge branch
+            tCaseElseEnd
+            oEmitCaseMergeBranch
+        | *:
+    ]
     % Call case abort trap (never returns)
     oOperandPushMode(mLineNum)          % ... n
     oOperandSetLength(word)
@@ -1250,6 +1265,8 @@ EmitDefaultCaseAbort:
     oEmitSingle(iCall)                  %       call  caseAbort
 
     oOperandPop;
+
+    %=================================================================
 
 
 EmitCaseSubscriptJump:

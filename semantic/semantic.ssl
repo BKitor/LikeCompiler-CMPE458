@@ -1631,6 +1631,12 @@ CaseStmt :
         oFixPopForwardBranch
         oEmitCaseBranchTable
 
+        [
+            | sCaseElse:
+                @CaseElseAlternative
+            | *:
+        ]
+
         % emit merge branches for case alternatives
         {[ oCountChoose         % number of case alternatives
             | zero:
@@ -1641,6 +1647,11 @@ CaseStmt :
         ]}
         oCasePopDisplay
         oCountPop;
+
+CaseElseAlternative :
+        .tCaseElse
+        @Statement
+        .tCaseElseEnd;
 
 CaseAlternative :
         % A case alternative is a series of integer
