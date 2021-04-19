@@ -2982,20 +2982,38 @@ OperandChr:
     @OperandForceIntoTemp
     oOperandSetLength(word);
 
+% Remove old ord
+%OperandOrd:
+%    % Byte operand is on top of operand stack
+%    % Fill a register with integer zero
+%    oOperandPushMode(mManifest)
+%    oOperandSetValue(zero)
+%    oOperandSetLength(word)
+%    @OperandForceIntoTemp       %       movl    $0, %T
+%    % Move the character value into the low order byte
+%    oOperandSetLength(byte)
+%    oOperandSwap
+%    oEmitDouble(iMov)           %       movb    y, %T
+%    @OperandPopAndFreeTemp
+%    % Treat the register as word, to get the character's integer value
+%    oOperandSetLength(word);
+
 OperandOrd:
-    % Byte operand is on top of operand stack
-    % Fill a register with integer zero
-    oOperandPushMode(mManifest)
+    % TOS is string
+    oOperandPushMode(mManifest) % add new operand for result
     oOperandSetValue(zero)
     oOperandSetLength(word)
-    @OperandForceIntoTemp       %       movl    $0, %T
-    % Move the character value into the low order byte
-    oOperandSetLength(byte)
+    @OperandForceIntoTemp
+
     oOperandSwap
-    oEmitDouble(iMov)           %       movb    y, %T
-    @OperandPopAndFreeTemp
-    % Treat the register as word, to get the character's integer value
-    oOperandSetLength(word);
+    @OperandForceIntoTemp
+    oOperandSetMode(mTempIndirect) % set the string to be derefrenced
+
+    oEmitDouble(iMov) % get the value at the string adn stick it in the result
+    @OperandPopAndFreeTemp % pop the string
+    oOperandSetLength(byte)
+    ;
+
 
 
 OperandEolnFunction:
