@@ -1,2 +1,3 @@
 using output;
-put(69420);
+put(9876);
+// put("test string")
