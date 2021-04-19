@@ -24,6 +24,7 @@ if [ $# -ne 0 ]; then
     if [[ "$1" == *"c"* ]];then like_build_asm choose; fi
     if [[ "$1" == *"i"* ]];then like_build_asm init_val; fi
     if [[ "$1" == *"s"* ]];then like_build_asm strings; fi
+    if [[ "$1" == *"a"* ]];then like_build_asm string_arrays; fi
 
 else
     echo "-- semantic null ---"
