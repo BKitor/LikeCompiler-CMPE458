@@ -1,0 +1,11 @@
+using output;
+var str = "four";
+var str2 = "negativefifteen";
+put(#"four");
+put(#str);
+put(#str2);
+put("\n");
+put(str || #str);
+put("\n");
+put((str2 | " ") || #str2);
+put("\n");
