@@ -800,13 +800,14 @@ Block:
             >
     ]}
     ;
-
+%+++++++++++++
+% NEW initial value rule
 InitialValue:
-    @OperandPushExpression
+    @OperandPushExpression % accept the expression
     tInitEnd
     tLiteralAddress
-    @OperandPushVariable
-    oOperandSwap
+    @OperandPushVariable % accept it's new address
+    oOperandSwap % Swap them and store accordingly
     [
         | tStoreInteger:
             @OperandAssignIntegerPopPop
@@ -814,6 +815,7 @@ InitialValue:
             @OperandAssignCharPopPop
     ]
     ;
+%+++++++++++++
 
 Routine:
     oEmitProcLabel(mProc)                       % pNN:
@@ -1599,6 +1601,8 @@ OperandPushExpression:
         | tEOF:
             @OperandEofFunction
 
+%++++++++++++++++++++++++++++++++++
+% add new String traps 
         | tSubstring:
             @OperandSubStringPop
         | tRepeatString:
@@ -1609,6 +1613,7 @@ OperandPushExpression:
             @OperandlengthPop
         | tStringEQ:
             @OperandStringEqPop
+%++++++++++++++++++++++++++++++++++
             
         | *:
             >
@@ -1658,21 +1663,26 @@ OperandSubStringPop:
     ;
 
 
+%++++++++++++++++++++++++++++++++++
+% NEW string eq trap
 OperandStringEqPop:
     % TOS is string2, then string1
     @SaveTempRegsToStack
 
+    % Push both strings onto the stack
     @OperandForceToStack
     oOperandPop
     @OperandForceToStack
     oOperandPop
 
+    % Call the trStringEqual trap 
     oOperandPushMode(mTrap)
     oOperandSetValue(trStringEqual)
     oOperandSetLength(word)
     oEmitSingle(iCall)
     oOperandPop
     
+    % Clean up the stack
     oOperandPushMode(mStackReg)
     oOperandSetLength(word)
     oOperandPushMode(mManifest)
@@ -1682,6 +1692,7 @@ OperandStringEqPop:
     oOperandPop
     oOperandPop
 
+    % Move the result to a scratch register
     oOperandPushMode(mScratchReg1)
     oOperandSetLength(word)
     oOperandPushMode(mResultReg)
@@ -1692,21 +1703,27 @@ OperandStringEqPop:
     @RestoreTempRegsFromStack
     @OperandForceIntoTemp
     oOperandSetLength(word)
+    % exit with eith 1 or 0 in a temp on top of the operand stack
     ;
+%++++++++++++++++++++++++++++++++++
 
+%++++++++++++++++++++++++++++++++++
 OperandLengthPop:
     % String to get lenght of is on stack
     @SaveTempRegsToStack
 
+    % Push the string onto the stack
     @OperandForceToStack
     oOperandPop
 
+    % Call the trLength trap 
     oOperandPushMode(mTrap)
     oOperandSetValue(trLength)
     oOperandSetLength(word)
     oEmitSingle(iCall)
     oOperandPop
     
+    % Clean up the stack
     oOperandPushMode(mStackReg)
     oOperandSetLength(word)
     oOperandPushMode(mManifest)
@@ -1716,6 +1733,7 @@ OperandLengthPop:
     oOperandPop
     oOperandPop
 
+    % Move the result to a scratch register
     oOperandPushMode(mScratchReg1)
     oOperandSetLength(word)
     oOperandPushMode(mResultReg)
@@ -1726,23 +1744,29 @@ OperandLengthPop:
     @RestoreTempRegsFromStack
     @OperandForceIntoTemp
     oOperandSetLength(word)
+    % exit with the string lengths in a temp on top of the operand stack
     ;
+%++++++++++++++++++++++++++++++++++
 
+%++++++++++++++++++++++++++++++++++
 OperandConcatinatePop:
     % TOS is string2, then string1
     @SaveTempRegsToStack
 
+    % Push the strings onto the stack
     @OperandForceToStack
     oOperandPop
     @OperandForceToStack
     oOperandPop
 
+    % Call the trConcatenate trap 
     oOperandPushMode(mTrap)
     oOperandSetValue(trConcatenate)
     oOperandSetLength(word)
     oEmitSingle(iCall)
     oOperandPop
     
+    % Clean up the stack
     oOperandPushMode(mStackReg)
     oOperandSetLength(word)
     oOperandPushMode(mManifest)
@@ -1752,6 +1776,7 @@ OperandConcatinatePop:
     oOperandPop
     oOperandPop
 
+    % Move the result to a scratch register
     oOperandPushMode(mScratchReg1)
     oOperandSetLength(word)
     oOperandPushMode(mResultReg)
@@ -1762,24 +1787,30 @@ OperandConcatinatePop:
     @RestoreTempRegsFromStack
     @OperandForceIntoTemp
     oOperandSetLength(word)
+    % exit with the new string in a temp on top of the operand stack
     ;   
+%++++++++++++++++++++++++++++++++++
 
 
+%++++++++++++++++++++++++++++++++++
 OperandRepeatStringPop:
     % TOS is num repeats, then string
     @SaveTempRegsToStack
 
+    % Push the string and num onto the stack
     @OperandForceToStack
     oOperandPop
     @OperandForceToStack
     oOperandPop
 
+    % Call the trRepeatString trap 
     oOperandPushMode(mTrap)
     oOperandSetValue(trRepeatString)
     oOperandSetLength(word)
     oEmitSingle(iCall)
     oOperandPop
     
+    % Clean up the stack
     oOperandPushMode(mStackReg)
     oOperandSetLength(word)
     oOperandPushMode(mManifest)
@@ -1789,6 +1820,7 @@ OperandRepeatStringPop:
     oOperandPop
     oOperandPop
 
+    % Move the result to a scratch register
     oOperandPushMode(mScratchReg1)
     oOperandSetLength(word)
     oOperandPushMode(mResultReg)
@@ -1799,10 +1831,9 @@ OperandRepeatStringPop:
     @RestoreTempRegsFromStack
     @OperandForceIntoTemp
     oOperandSetLength(word)
+    % exit with the new string in a temp on top of the operand stack
     ;
-
-
-    
+%++++++++++++++++++++++++++++++++++
 
 EmitStringAddress:
     % Get the address of a string into a temp reg.
@@ -2465,6 +2496,8 @@ OperandPushExpressionAssignPopPop:
         | tEOF:
             @OperandEofFunction
         
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% A support for new trap codes
         | tSubstring:
             @OperandSubStringPop
         | tRepeatString:
@@ -2475,6 +2508,7 @@ OperandPushExpressionAssignPopPop:
             @OperandlengthPop
         | tStringEQ:
             @OperandStringEqPop
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ]};
 
 
@@ -2992,21 +3026,40 @@ OperandChr:
     @OperandForceIntoTemp
     oOperandSetLength(word);
 
+% Remove old ord
+%OperandOrd:
+%    % Byte operand is on top of operand stack
+%    % Fill a register with integer zero
+%    oOperandPushMode(mManifest)
+%    oOperandSetValue(zero)
+%    oOperandSetLength(word)
+%    @OperandForceIntoTemp       %       movl    $0, %T
+%    % Move the character value into the low order byte
+%    oOperandSetLength(byte)
+%    oOperandSwap
+%    oEmitDouble(iMov)           %       movb    y, %T
+%    @OperandPopAndFreeTemp
+%    % Treat the register as word, to get the character's integer value
+%    oOperandSetLength(word);
+
+% +++++++++++++++++++++++++++
+% Add new Ord
 OperandOrd:
-    % Byte operand is on top of operand stack
-    % Fill a register with integer zero
-    oOperandPushMode(mManifest)
+    % TOS is string
+    oOperandPushMode(mManifest) % add new operand for result
     oOperandSetValue(zero)
     oOperandSetLength(word)
-    @OperandForceIntoTemp       %       movl    $0, %T
-    % Move the character value into the low order byte
-    oOperandSetLength(byte)
-    oOperandSwap
-    oEmitDouble(iMov)           %       movb    y, %T
-    @OperandPopAndFreeTemp
-    % Treat the register as word, to get the character's integer value
-    oOperandSetLength(word);
+    @OperandForceIntoTemp
 
+    oOperandSwap
+    @OperandForceIntoTemp
+    oOperandSetMode(mTempIndirect) % set the string to be derefrenced
+
+    oEmitDouble(iMov) % get the value at the string adn stick it in the result
+    @OperandPopAndFreeTemp % pop the string
+    oOperandSetLength(byte)
+    ;
+% +++++++++++++++++++++++++++
 
 OperandEolnFunction:
     % First save the temp registers, since we are called in an
