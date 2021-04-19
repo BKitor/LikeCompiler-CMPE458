@@ -1,0 +1,7 @@
+using output;
+var s = chr(111); //letter o
+put(s);
+putln;
+var i = 112; //letter p
+put(chr(i));
+putln;

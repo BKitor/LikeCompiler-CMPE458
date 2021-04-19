@@ -1,0 +1,10 @@
+using output;
+//var string = "Hi there" / 1:2;
+//var string = "Hi there";
+//string = string/1:2 ;
+
+var S = "Not Great";
+put(S);
+put("\n");
+S = S/5:9 ;
+put(S);

@@ -1591,12 +1591,51 @@ OperandPushExpression:
         | tEOF:
             @OperandEofFunction
 
-
+        | tSubstring:
+            @OperandSubStringPop
         | tRepeatString:
             @OperandRepeatStringPop
         | *:
             >
     ]};
+
+OperandSubStringPop:
+ % TOS is num repeats, then string
+    @SaveTempRegsToStack
+
+    @OperandForceToStack
+    oOperandPop
+    @OperandForceToStack
+    oOperandPop
+    @OperandForceToStack
+    oOperandPop
+
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trSubString)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(twelve)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
+
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word)
+    ;
 
 OperandRepeatStringPop:
     % TOS is num repeats, then string
@@ -1634,6 +1673,9 @@ OperandRepeatStringPop:
     oOperandSetLength(word)
 
     ;
+
+
+    
 
 EmitStringAddress:
     % Get the address of a string into a temp reg.
@@ -2294,7 +2336,9 @@ OperandPushExpressionAssignPopPop:
             @OperandEolnFunction
         | tEOF:
             @OperandEofFunction
-
+        
+        | tSubstring:
+            @OperandSubStringPop
         | tRepeatString:
             @OperandRepeatStringPop
     ]};
@@ -2778,12 +2822,39 @@ OperandEmitDividePopPop:
 
 
 OperandChr:
+    @SaveTempRegsToStack
     % Assume operand's value is in range
+    
     % Force integer (word) value to a register
-    @OperandForceIntoTemp       
+    @OperandForceToStack
+    oOperandPop       
     % Treat the register as byte, to get the low order byte 
-    oOperandSetLength(byte);    
+    
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trChrString)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop   
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(four)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+    
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
 
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word);
 
 OperandOrd:
     % Byte operand is on top of operand stack
