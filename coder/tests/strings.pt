@@ -1,3 +1,7 @@
 using output;
-var string = "Hi there";
-//put(string);
+var string = "Hi there\n";
+put(string);
+
+string = "Goodbye";
+put(string);
+//put("Howdy");
