@@ -493,7 +493,6 @@ program Coder (output, coderSsl, tCode, object, options);
         { Machine word size }
         wordSize = 4;           { longword (4 bytes) on SUN }
 {+++++++++++++++++++++++++++++++++++++}
-        { string size definition }
         stringSize = 256;
 {+++++++++++++++++++++++++++++++++++++}
 
@@ -1809,8 +1808,7 @@ program Coder (output, coderSsl, tCode, object, options);
                     if operandStkLength[operandStkTop-1] = word then
                         { Convert a byte offset to a word offset }
                         subscript := subscript * wordSize;
-{ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ }
-{ add offset scaling by stringSize (256) if the array operand’s length is string }
+{ +++++add offset scaling by stringSize 256 if the array operands length is string+++++++++++++++ }
                     if operandStkLength[operandStkTop-1] = string then
                         { Convert a byte offset to a word offset }
                         subscript := subscript * stringSize;
