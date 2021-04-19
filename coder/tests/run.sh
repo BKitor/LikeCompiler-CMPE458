@@ -6,8 +6,6 @@ cd tests
 
 LIKE_LIB=../../lib/pt
 
-
-
 PT_TEST_FILES=( "null" "put" "init_val" "choose" )
 
 like_run_test(){ # takes the name of a test (without .pt) as arg 1 
