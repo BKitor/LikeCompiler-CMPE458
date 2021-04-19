@@ -7,7 +7,7 @@ cd tests
 LIKE_LIB=../../lib/pt
 
 
-PT_TEST_FILES=( "null" "put" "init_val" "choose" "strings" "repeat_string" "string_array" "concat")
+PT_TEST_FILES=( "null" "put" "init_val" "choose" "strings" "repeat_string" "string_array" "concat" "strcmp")
 
 
 like_build_asm(){
@@ -27,6 +27,7 @@ if [ $# -ne 0 ]; then
     if [[ "$1" == *"r"* ]];then like_build_asm repeat_string; fi
     if [[ "$1" == *"a"* ]];then like_build_asm string_arrays; fi
     if [[ "$1" == *"o"* ]];then like_build_asm concat; fi
+    if [[ "$1" == *"e"* ]];then like_build_asm strcmp; fi
 
 else
     echo "-- semantic null ---"
