@@ -1898,14 +1898,8 @@ program Coder (output, coderSsl, tCode, object, options);
                                 while i <= compoundTokenLength + 1 do
                                     begin
                                         read (tCode, compoundTokenText[i]);
-                                        {debugging write}
-                                        write ('TESSSSSSSSSSSSSSSSSSSST');
-                                        writeln;
-                                        write (compoundTokenText[i]);
-                                        writeln;
-                                        i := i + 1
+                                        i := i + 1;
                                     end;
-
                                 nextTCodeAddress := nextTCodeAddress + compoundTokenLength+1;
                             end;
                     end         { case compoundToken }
@@ -2256,14 +2250,13 @@ program Coder (output, coderSsl, tCode, object, options);
                             Assert ( (compoundToken = tLiteralInteger), assert18);
                             OperandPush (mManifest, compoundTokenValue, undefined, word)
                         end;
-{Removed-----------------------------------------------------------------------------------------
+
                     oOperandPushChar:
                         begin
                             Assert ( (compoundToken = tLiteralChar), assert19);
-                            OperandPush (mManifest, compoundTokenValue, undefined, byte)
+                            OperandPush (mStatic, compoundTokenValue, undefined, word)
                         end;
------------------------------------------------------------------------------------------
-}
+
                     oOperandPushBoolean:
                         begin
                             Assert ( (compoundToken = tLiteralBoolean), assert20);

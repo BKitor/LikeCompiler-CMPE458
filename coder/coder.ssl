@@ -1812,7 +1812,10 @@ OperandSubscriptCharPop:
         | *:
             @OperandSubscriptNonManifestCharPop
     ]
-    oOperandSetLength(byte);
+%---------------------------
+%    oOperandSetLength(byte)
+%---------------------------
+    oOperandSetLength(string);
 
 
 OperandSubscriptNonManifestCharPop:
@@ -3007,7 +3010,8 @@ OperandAssignCharPopPop:
     %THIS SUPPORTS STRING BUT DOES IT KNOW ITS DEALING WITH A STRING
     @OperandForcetoStack        
     oOperandPop
-    @OperandForcetoStack        
+    oOperandSetLength(string)
+    @OperandForcetoStack      
     oOperandPop
 
     % Call the eoln trap routine to test the end of line condition
