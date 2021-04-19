@@ -1,0 +1,12 @@
+using output;
+put("tst" | "sts");
+put("\n");
+
+var s = "t" | "t";
+put(s);
+put("\n");
+put(s | "y");
+put("\n");
+
+var t = "o" || 6*9 | "hye" | ("a" || 9*6);
+put(t);

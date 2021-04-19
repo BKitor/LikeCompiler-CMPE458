@@ -1599,9 +1599,122 @@ OperandPushExpression:
 
         | tRepeatString:
             @OperandRepeatStringPop
+        | tConcatinate:
+            @OperandConcatinatePop
+        | tLength:
+            @OperandlengthPop
+        | tStringEQ:
+            @OperandStringEqPop
+            
         | *:
             >
     ]};
+
+OperandStringEqPop:
+    % TOS is string2, then string1
+    @SaveTempRegsToStack
+
+    @OperandForceToStack
+    oOperandPop
+    @OperandForceToStack
+    oOperandPop
+
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trStringEqual)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(eight)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
+
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word)
+    ;
+
+OperandLengthPop:
+    % String to get lenght of is on stack
+    @SaveTempRegsToStack
+
+    @OperandForceToStack
+    oOperandPop
+
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trLength)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(four)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
+
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word)
+    ;
+
+OperandConcatinatePop:
+    % TOS is string2, then string1
+    @SaveTempRegsToStack
+
+    @OperandForceToStack
+    oOperandPop
+    @OperandForceToStack
+    oOperandPop
+
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trConcatenate)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(eight)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
+
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word)
+    ;
 
 OperandRepeatStringPop:
     % TOS is num repeats, then string
@@ -1637,7 +1750,6 @@ OperandRepeatStringPop:
     @RestoreTempRegsFromStack
     @OperandForceIntoTemp
     oOperandSetLength(word)
-
     ;
 
 EmitStringAddress:
@@ -2302,6 +2414,12 @@ OperandPushExpressionAssignPopPop:
 
         | tRepeatString:
             @OperandRepeatStringPop
+        | tConcatinate:
+            @OperandConcatinatePop
+        | tLength:
+            @OperandlengthPop
+        | tStringEQ:
+            @OperandStringEqPop
     ]};
 
 
