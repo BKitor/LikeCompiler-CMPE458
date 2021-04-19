@@ -800,13 +800,14 @@ Block:
             >
     ]}
     ;
-
+%+++++++++++++
+% NEW initial value rule
 InitialValue:
-    @OperandPushExpression
+    @OperandPushExpression % accept the expression
     tInitEnd
     tLiteralAddress
-    @OperandPushVariable
-    oOperandSwap
+    @OperandPushVariable % accept it's new address
+    oOperandSwap % Swap them and store accordingly
     [
         | tStoreInteger:
             @OperandAssignIntegerPopPop
@@ -814,6 +815,7 @@ InitialValue:
             @OperandAssignCharPopPop
     ]
     ;
+%+++++++++++++
 
 Routine:
     oEmitProcLabel(mProc)                       % pNN:
