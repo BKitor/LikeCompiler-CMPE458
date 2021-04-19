@@ -1,0 +1,16 @@
+using output;
+var cardnames [6] : like "A";
+cardnames [1] = "Wow\n";
+cardnames [2] = "Its\n";
+cardnames [3] = "Working\n";
+cardnames [4] = "I\n";
+cardnames [5] = "Am\n";
+cardnames [6] = "Surprised";
+var y = cardnames [1];
+put(y);
+put (cardnames [2]);
+put(cardnames [3] , cardnames [4] , cardnames [5] , cardnames [6]);
+
+
+
+
