@@ -12,11 +12,11 @@ PT_TEST_FILES=( "null" "put" "init_val" "choose" "strings" "repeat_string" "stri
 
 like_build_asm(){
     ptc -S -L $LIKE_LIB $1.pt
+    echo "---------"
     cat $1.s
     rm $1.s
     #ssltrace "ptc -o4 -t4 -L lib/pt test.pt" lib/pt/coder.def -e
 }
-
 
 if [ $# -ne 0 ]; then
     if [[ "$1" == *"n"* ]];then like_build_asm null; fi
