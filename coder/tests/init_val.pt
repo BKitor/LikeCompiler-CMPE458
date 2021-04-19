@@ -6,5 +6,7 @@ var j = k + 334;
 put(k);
 put(j);
 
-// var s = "tst";
-// put(s);
+var s = "\ntst";
+put(s);
+s = "\nnew str";
+put(s);

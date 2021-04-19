@@ -1,0 +1,12 @@
+using output;
+put("tst" || 3);
+put("\n");
+
+var s = "t" || 4;
+put(s);
+put("\n");
+put(s || 3);
+put("\n");
+
+var t = "s" || (4 * 8);
+put(t);
