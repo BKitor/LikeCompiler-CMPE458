@@ -493,6 +493,7 @@ program Coder (output, coderSsl, tCode, object, options);
         { Machine word size }
         wordSize = 4;           { longword (4 bytes) on SUN }
 {+++++++++++++++++++++++++++++++++++++}
+        {string size definition}
         stringSize = 256;
 {+++++++++++++++++++++++++++++++++++++}
 
@@ -1809,6 +1810,7 @@ program Coder (output, coderSsl, tCode, object, options);
                         { Convert a byte offset to a word offset }
                         subscript := subscript * wordSize;
 { ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ }
+{ add offset scaling by stringSize (256) if the array operand’s length is string }
                     if operandStkLength[operandStkTop-1] = string then
                         { Convert a byte offset to a word offset }
                         subscript := subscript * stringSize;
@@ -1869,6 +1871,7 @@ program Coder (output, coderSsl, tCode, object, options);
 
                     case compoundToken of
                     {------------------------------}
+                    { alternatives handling of tLiteralChar, literalString removed }
                     { tLiteralChar,tLiteralString,}
                     {------------------------------}
                         tLiteralAddress, tLiteralInteger,
@@ -1895,11 +1898,13 @@ program Coder (output, coderSsl, tCode, object, options);
                                 compoundTokenLength := compoundTokenValue;
                                 compoundTokenValue := tCodeAddress;
                                 i := 1;
+                                {+1 added to handle the null character}
                                 while i <= compoundTokenLength + 1 do
                                     begin
                                         read (tCode, compoundTokenText[i]);
                                         i := i + 1;
                                     end;
+                                    { +1 Code Address added to handle updating address with the null character included }
                                 nextTCodeAddress := nextTCodeAddress + compoundTokenLength+1;
                             end;
                     end         { case compoundToken }

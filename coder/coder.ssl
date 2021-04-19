@@ -844,6 +844,7 @@ Routine:
                             oOperandSetLength(word)
                             @OperandAssignIntegerPopPop
                         | tStoreChar:
+                            %CHANGE: Updated to specify string rather than byte
                             oOperandSetLength(string)
                             @OperandAssignCharPopPop
                         | tStoreBoolean:
@@ -1530,12 +1531,14 @@ OperandPushExpression:
         | tLiteralInteger:
             oOperandPushInteger
 %--------------------------------------------------
+% alternatives handling of tLiteralChar removed
 %        | tLiteralChar:
 %            oOperandPushChar
 %--------------------------------------------------
         | tLiteralBoolean:
             oOperandPushBoolean
 %--------------------------------------------------
+% alternative handling of tLiteralString removed
 %        | tLiteralString:
 %            % Get a string literal's address
 %            oOperandPushStringAddress
@@ -1613,9 +1616,10 @@ OperandPushExpression:
 
 
 OperandSubStringPop:
- % TOS is top, bot bounds, then string
+%Emit code for SubString trap
     @SaveTempRegsToStack
 
+    % push  top, bot and string arguments to stack
     @OperandForceToStack
     oOperandPop
     @OperandForceToStack
@@ -1623,12 +1627,14 @@ OperandSubStringPop:
     @OperandForceToStack
     oOperandPop
 
+    %call substring trap
     oOperandPushMode(mTrap)
     oOperandSetValue(trSubString)
     oOperandSetLength(word)
     oEmitSingle(iCall)
     oOperandPop
     
+    % Pop arguments
     oOperandPushMode(mStackReg)
     oOperandSetLength(word)
     oOperandPushMode(mManifest)
@@ -1638,6 +1644,7 @@ OperandSubStringPop:
     oOperandPop
     oOperandPop
 
+    %Handling Results
     oOperandPushMode(mScratchReg1)
     oOperandSetLength(word)
     oOperandPushMode(mResultReg)
@@ -1835,6 +1842,7 @@ OperandPushVariable:
 %        | tFetchChar, tFetchBoolean:
 %            oOperandSetLength(byte)
 %--------------------------------------
+%CHANGED:Updated to specify string rather than byte. Seperated boolean and char conditionals
 %++++++++++++++++++++++++++++++++++++++
         | tFetchChar:
             oOperandSetLength(string)
@@ -2048,7 +2056,7 @@ OperandCheckedSubscriptNonManifestCharPop:
     oOperandSwapLeftAndDest                     % ... arraydesc, %T, lower
     @OperandSubtractPop                         %       subl lower, %T
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    % Scale subscript by word size              % ... arraydesc, %T
+    % Scale subscript by string size              % ... arraydesc, %T
     oOperandPushMode(mManifest)
     oOperandSetLength(string)
     oOperandSetValue(eight)                       % ... arraydesc, %T, 8
@@ -2112,8 +2120,6 @@ OperandUncheckedSubscriptNonManifestCharPop:
             oOperandPop 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             oOperandSwap                        % ... %T, arraydesc
-
-
 
             % Fold lower bound into array address to avoid normalizing
             % subscript at run time
@@ -2346,6 +2352,7 @@ OperandPushExpressionAssignPopPop:
 
     {[
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        %alternative for tSkipString matching alternative from OperandPushExpression
         | tSkipString:
         % Emit string literal to data area
         oEmitNone(iData)                    %       .data
@@ -2358,6 +2365,7 @@ OperandPushExpressionAssignPopPop:
         | tLiteralInteger:
             oOperandPushInteger
 %--------------------------------------------------
+% alternatives handling of tLiteralChar removed
 %        | tLiteralChar:
 %            oOperandPushChar
 %--------------------------------------------------
@@ -2949,19 +2957,20 @@ OperandEmitDividePopPop:
 
 OperandChr:
     @SaveTempRegsToStack
+
     % Assume operand's value is in range
-    
-    % Force integer (word) value to a register
+    % Force integer (word) value to stack
     @OperandForceToStack
-    oOperandPop       
-    % Treat the register as byte, to get the low order byte 
-    
+    oOperandPop  
+
+    % call trChrString to handle 
     oOperandPushMode(mTrap)
     oOperandSetValue(trChrString)
     oOperandSetLength(word)
     oEmitSingle(iCall)
     oOperandPop   
     
+    %Pop arguments
     oOperandPushMode(mStackReg)
     oOperandSetLength(word)
     oOperandPushMode(mManifest)
@@ -2971,6 +2980,7 @@ OperandChr:
     oOperandPop
     oOperandPop
     
+    %Result
     oOperandPushMode(mScratchReg1)
     oOperandSetLength(word)
     oOperandPushMode(mResultReg)
@@ -3234,8 +3244,7 @@ OperandAssignIntegerPopPop:
 
 
 OperandAssignCharPopPop:
-    % Generate code to assign the right (top) operand's value to
-    % the left (second) operand and pop both operands.
+%Emit code to call the new trAssignString trap
 %-----------------------------------------------------------
 %    oOperandSetLength(byte)
 %    @EmitMove                   %       movb    y, x
@@ -3246,39 +3255,38 @@ OperandAssignCharPopPop:
     % expression, they  may be in use
     @SaveTempRegsToStack        %       pushl %eax .. %edx
 
-    % Now send the arguments
-    %THIS SUPPORTS STRING BUT DOES IT KNOW ITS DEALING WITH A STRING
+    % Now send the arguments addresses to the stack
     @OperandForcetoStack        
     oOperandPop
     oOperandSetLength(string)
     @OperandForcetoStack      
     oOperandPop
 
-    % Call the eoln trap routine to test the end of line condition
+    % Call the AssignString trap
     oOperandPushMode(mTrap)
     oOperandSetValue(trAssignString)
     oOperandSetLength(word)
     oEmitSingle(iCall)          %       call    pttrap101
     oOperandPop
 
-    % Pop argument
+    % Pop arguments
     oOperandPushMode(mStackReg)
     oOperandSetLength(word)
     oOperandPushMode(mManifest)
     oOperandSetLength(word)
-    %SHOULD WE CHANGE THESE ^ TO STRING??????
     oOperandSetValue(eight)      % ... %esp, 1arg*8
     oEmitDouble(iAdd)           %       addl    $8, %esp
     oOperandPop
     oOperandPop
 
-    %% Accept result
+    %--------------------------------------------------------------------
     %oOperandPushMode(mScratchReg1)
     %oOperandSetLength(word)
     %oOperandPushMode(mResultReg)
     %oOperandSetLength(word)
     %oEmitDouble(iMov)           %       movl    %eax, %S1
     %oOperandPop %eax
+    %---------------------------------------------------------------------
 
     % Restore temp regs
     @RestoreTempRegsFromStack;   %       popl    %edx .. $eax
@@ -3523,6 +3531,7 @@ OperandForceIntoTemp:
                 | word:
                     @OperandPushTempWord
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                %alternative for operand length string which calls OperandForceAddressIntoTemp
                 | string :
                     @OperandForceAddressIntoTemp
                     % and then exits the rule
@@ -3655,8 +3664,6 @@ OperandForceToStack:
         %add an alternative for operand length string that calls OperandForceAddressIntoTemp 
         | string:
                 @OperandForceAddressIntoTemp
-                %before emitting the code to push the operand.
-                %???????
 %++++++++++++++++++++++++++++++++++++++++++++++++++
     ]
     oEmitSingle(iPush)

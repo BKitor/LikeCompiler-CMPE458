@@ -7,3 +7,10 @@ using output;
         else
             put(69422);       
         end;
+    
+    choose 1 of
+        when 2 then
+            put(69420);
+        when 1 then
+            put(69421);      
+        end;
