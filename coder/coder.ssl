@@ -1590,10 +1590,50 @@ OperandPushExpression:
             @OperandEolnFunction
         | tEOF:
             @OperandEofFunction
+
+
+        | tRepeatString:
+            @OperandRepeatStringPop
         | *:
             >
     ]};
 
+OperandRepeatStringPop:
+    % TOS is num repeats, then string
+    @SaveTempRegsToStack
+
+    @OperandForceToStack
+    oOperandPop
+    @OperandForceToStack
+    oOperandPop
+
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trRepeatString)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(eight)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
+
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word)
+
+    ;
 
 EmitStringAddress:
     % Get the address of a string into a temp reg.
@@ -2254,6 +2294,9 @@ OperandPushExpressionAssignPopPop:
             @OperandEolnFunction
         | tEOF:
             @OperandEofFunction
+
+        | tRepeatString:
+            @OperandRepeatStringPop
     ]};
 
 
