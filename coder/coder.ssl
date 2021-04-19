@@ -82,6 +82,7 @@ Input:
         tWriteEnd
         tReadEnd
 
+        % NEW like t codes
         tConcatinate
         tRepeatString
         tSubstring
@@ -135,6 +136,7 @@ type Integer:
         four = 4
         eight = 8
         twelve = 12
+        % NEW string size Integer
         twofiftysix = 256
 
         % Temporary registers
@@ -161,6 +163,7 @@ type Integer:
         trEoln = 15
         trEof = 16
 
+        % NEW like trap codes
         trAssignString = 101
         trChrString = 102
         trConcatenate = 103
@@ -173,6 +176,7 @@ type Integer:
 
         % Data kinds
         byte = 1
+        % NEW Like trap kind
         string = 3
         word = 2;   % 4 bytes on x86
 
@@ -768,7 +772,7 @@ Block:
             oFixForwardBranch   
             oFixPopAddress
 
-        % moved body of statement rule into Block to match both declarations and statements
+        % NEW moved body of statement rule into Block to match both declarations and statements
         | tAssignBegin:
             @AssignStmt
         | tCallBegin:
@@ -788,6 +792,7 @@ Block:
         | tTrapBegin:
             @TrapStmt
 
+        % NEW initial value feature
         | tInitialValue:
             @InitialValue
 

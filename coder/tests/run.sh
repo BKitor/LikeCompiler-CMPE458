@@ -6,7 +6,9 @@ cd tests
 
 LIKE_LIB=../../lib/pt
 
+
 PT_TEST_FILES=( "null" "put" "init_val" "choose" "strings" "repeat_string" "string_arrays" )
+
 
 like_run_test(){ # takes the name of a test (without .pt) as arg 1 
     echo "*** compiling $f.pt ***"
