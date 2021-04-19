@@ -1,0 +1,6 @@
+using output;
+var string = "Hi there\n";
+put(string);
+string = "Goodbye\n";
+put(string);
+put("string in put");
