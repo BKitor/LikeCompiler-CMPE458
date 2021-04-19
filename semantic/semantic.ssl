@@ -1767,9 +1767,11 @@ Operand :
                 oSymbolStkPush(syExpression)
                 @StringLiteral  % pushes type and value
                 .tLiteralAddress
-                oValuePushChar
+%------------Messed up -------------------------
+                %oValuePushChar
                 oEmitValue
-                oValuePop
+                %oValuePop
+%------------Commentedd things are sabotage-----
                 .tFetchChar
                 oValuePop       %NOT SURE WHY I NEED THIS BUT I NEED THIS
             | sFile:
