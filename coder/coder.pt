@@ -493,7 +493,7 @@ program Coder (output, coderSsl, tCode, object, options);
         { Machine word size }
         wordSize = 4;           { longword (4 bytes) on SUN }
 {+++++++++++++++++++++++++++++++++++++}
-        {string size definition}
+        { string size definition }
         stringSize = 256;
 {+++++++++++++++++++++++++++++++++++++}
 
