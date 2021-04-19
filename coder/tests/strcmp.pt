@@ -1,0 +1,38 @@
+using output;
+
+if "tst" == "tst" then
+    put("1 good\n");
+else
+    put("1 bad\n");
+end;
+
+if "tst" == "nottst" then
+    put("2 bad\n");
+else
+    put("2 good\n");
+end;
+
+if "tst" != "nottst" then
+    put("3 good\n");
+else
+    put("3 bad\n");
+end;
+
+if "tst" != "tst" then
+    put("4 bad\n");
+else
+    put("4 good\n");
+end;
+
+if "tst" | "sts" == "tststs" then
+    put("5 good\n");
+else
+    put("5 bad\n");
+end;
+
+if "tst" || 4 == "tsttsttsttst" then
+    put("6 good\n");
+else
+    put("6 bad\n");
+end;
+

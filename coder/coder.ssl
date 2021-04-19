@@ -82,6 +82,7 @@ Input:
         tWriteEnd
         tReadEnd
 
+        % NEW like t codes
         tConcatinate
         tRepeatString
         tSubstring
@@ -135,6 +136,7 @@ type Integer:
         four = 4
         eight = 8
         twelve = 12
+        % NEW string size Integer
         twofiftysix = 256
 
         % Temporary registers
@@ -161,6 +163,7 @@ type Integer:
         trEoln = 15
         trEof = 16
 
+        % NEW like trap codes
         trAssignString = 101
         trChrString = 102
         trConcatenate = 103
@@ -173,6 +176,7 @@ type Integer:
 
         % Data kinds
         byte = 1
+        % NEW Like trap kind
         string = 3
         word = 2;   % 4 bytes on x86
 
@@ -768,7 +772,7 @@ Block:
             oFixForwardBranch   
             oFixPopAddress
 
-        % moved body of statement rule into Block to match both declarations and statements
+        % NEW moved body of statement rule into Block to match both declarations and statements
         | tAssignBegin:
             @AssignStmt
         | tCallBegin:
@@ -788,6 +792,7 @@ Block:
         | tTrapBegin:
             @TrapStmt
 
+        % NEW initial value feature
         | tInitialValue:
             @InitialValue
 
@@ -1595,12 +1600,20 @@ OperandPushExpression:
             @OperandSubStringPop
         | tRepeatString:
             @OperandRepeatStringPop
+        | tConcatinate:
+            @OperandConcatinatePop
+        | tLength:
+            @OperandlengthPop
+        | tStringEQ:
+            @OperandStringEqPop
+            
         | *:
             >
     ]};
 
+
 OperandSubStringPop:
- % TOS is num repeats, then string
+ % TOS is top, bot bounds, then string
     @SaveTempRegsToStack
 
     @OperandForceToStack
@@ -1637,6 +1650,114 @@ OperandSubStringPop:
     oOperandSetLength(word)
     ;
 
+
+OperandStringEqPop:
+    % TOS is string2, then string1
+    @SaveTempRegsToStack
+
+    @OperandForceToStack
+    oOperandPop
+    @OperandForceToStack
+    oOperandPop
+
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trStringEqual)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(eight)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
+
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word)
+    ;
+
+OperandLengthPop:
+    % String to get lenght of is on stack
+    @SaveTempRegsToStack
+
+    @OperandForceToStack
+    oOperandPop
+
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trLength)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(four)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
+
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word)
+    ;
+
+OperandConcatinatePop:
+    % TOS is string2, then string1
+    @SaveTempRegsToStack
+
+    @OperandForceToStack
+    oOperandPop
+    @OperandForceToStack
+    oOperandPop
+
+    oOperandPushMode(mTrap)
+    oOperandSetValue(trConcatenate)
+    oOperandSetLength(word)
+    oEmitSingle(iCall)
+    oOperandPop
+    
+    oOperandPushMode(mStackReg)
+    oOperandSetLength(word)
+    oOperandPushMode(mManifest)
+    oOperandSetLength(word)
+    oOperandSetValue(eight)
+    oEmitDouble(iAdd)
+    oOperandPop
+    oOperandPop
+
+    oOperandPushMode(mScratchReg1)
+    oOperandSetLength(word)
+    oOperandPushMode(mResultReg)
+    oOperandSetLength(word)
+    oEmitDouble(iMov)
+    oOperandPop
+
+    @RestoreTempRegsFromStack
+    @OperandForceIntoTemp
+    oOperandSetLength(word)
+    ;   
+
+
 OperandRepeatStringPop:
     % TOS is num repeats, then string
     @SaveTempRegsToStack
@@ -1671,7 +1792,6 @@ OperandRepeatStringPop:
     @RestoreTempRegsFromStack
     @OperandForceIntoTemp
     oOperandSetLength(word)
-
     ;
 
 
@@ -2341,6 +2461,12 @@ OperandPushExpressionAssignPopPop:
             @OperandSubStringPop
         | tRepeatString:
             @OperandRepeatStringPop
+        | tConcatinate:
+            @OperandConcatinatePop
+        | tLength:
+            @OperandlengthPop
+        | tStringEQ:
+            @OperandStringEqPop
     ]};
 
 
