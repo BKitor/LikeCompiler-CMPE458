@@ -1,16 +1,16 @@
 using output;
     choose 3 of
         when 2 then
-            put(69420);
+            put("no");
         when 1 then
-            put(69421);
+            put("no");
         else
-            put(69422);       
+            put("yes\n");       
         end;
     
     choose 1 of
         when 2 then
-            put(69420);
+            put("no");
         when 1 then
-            put(69421);      
+            put("yes\n");      
         end;
