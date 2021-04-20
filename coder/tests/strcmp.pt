@@ -1,12 +1,13 @@
 using output;
 
-if "tst" == "tst" then
+var v = "tst";
+if v == "tst" then
     put("1 good\n");
 else
     put("1 bad\n");
 end;
 
-if "tst" == "nottst" then
+if v == "nottst" then
     put("2 bad\n");
 else
     put("2 good\n");
