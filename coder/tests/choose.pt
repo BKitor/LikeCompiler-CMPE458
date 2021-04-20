@@ -1,0 +1,16 @@
+using output;
+    choose 3 of
+        when 2 then
+            put("no");
+        when 1 then
+            put("no");
+        else
+            put("yes\n");       
+        end;
+    
+    choose 1 of
+        when 2 then
+            put("no");
+        when 1 then
+            put("yes\n");      
+        end;

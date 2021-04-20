@@ -1111,16 +1111,24 @@ VariableDeclarations :
 
         [
             | sInitialValue:    % check if initial value, otherwise match like clause
-
+                .tInitialValue
                 % add properties to type/symbol stacks
                 @Expression     % Get value and type of expression
-                oSymbolStkPop   % pop Expression from stack
+                .tInitEnd
                 @TypeTblEnterIfNew
+                oSymbolStkPop   % pop Expression from stack
                 @EnterVariableAttributes
                 % Reverse Assignment of Value to var tLiteralAddress emitStore 
-                .tLiteralInteger
                 .tLiteralAddress
-                @EmitStore
+                oValuePushSymbol
+                oEmitValue
+                oValuePop
+                [ oTypeStkChooseKind
+                    | tpArray:
+                        #eScalarReqd	% can't assign whole arrays
+                    | *:                
+                        @EmitStore
+                ]
                 oTypeStkPop     % pop expression from stack
                 
 
@@ -1623,6 +1631,12 @@ CaseStmt :
         oFixPopForwardBranch
         oEmitCaseBranchTable
 
+        [
+            | sCaseElse:
+                @CaseElseAlternative
+            | *:
+        ]
+
         % emit merge branches for case alternatives
         {[ oCountChoose         % number of case alternatives
             | zero:
@@ -1633,6 +1647,11 @@ CaseStmt :
         ]}
         oCasePopDisplay
         oCountPop;
+
+CaseElseAlternative :
+        .tCaseElse
+        @Statement
+        .tCaseElseEnd;
 
 CaseAlternative :
         % A case alternative is a series of integer
@@ -1748,9 +1767,11 @@ Operand :
                 oSymbolStkPush(syExpression)
                 @StringLiteral  % pushes type and value
                 .tLiteralAddress
-                oValuePushChar
+%------------Messed up -------------------------
+                %oValuePushChar
                 oEmitValue
-                oValuePop
+                %oValuePop
+%------------Commentedd things are sabotage-----
                 .tFetchChar
                 oValuePop       %NOT SURE WHY I NEED THIS BUT I NEED THIS
             | sFile:
@@ -1878,8 +1899,9 @@ BinaryOperator :
             | sNE:
                 [ oTypeStkChooseKind
                     | tpChar:
-                        .tNot
+                    % NEW these were out of order
                         .tStringEQ
+                        .tNot
                     |*:
                         .tNE 
                 ]

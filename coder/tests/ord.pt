@@ -1,0 +1,5 @@
+using output;
+var o1 = ord("a");
+var o2 = ord("b");
+put(o1);
+put(o2);

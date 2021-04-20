@@ -1,0 +1,4 @@
+using output;
+put(9876);
+put(1+2+3+4+5);
+put("\ntest string");

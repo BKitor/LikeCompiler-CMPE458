@@ -1,0 +1,12 @@
+using output;
+
+val i = 333;
+var k = 2 * i;
+var j = k + 334;
+put(k);
+put(j);
+
+var s = "\ntst";
+put(s);
+s = "\nnew str";
+put(s);

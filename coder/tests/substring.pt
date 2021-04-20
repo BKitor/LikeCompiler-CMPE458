@@ -1,0 +1,8 @@
+using output;
+var S = "Not Great";
+put(S);
+put("\n");
+S = S/5:9;
+put(S);
+put("\n");
+put(S/3:3);
